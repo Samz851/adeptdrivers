@@ -1,9 +1,6 @@
 #gitginore
-uploads/
 uploads-old/
 plugins-old/
 themes-old/
 updraft/
 upgrade/
-
-!uploads/essential-grid/
