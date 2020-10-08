@@ -1,0 +1,7 @@
+#gitginore
+uploads/
+uploads-old/
+plugins-old/
+themes-old/
+updraft/
+upgrade/
