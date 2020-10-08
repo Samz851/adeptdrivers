@@ -5,3 +5,5 @@ plugins-old/
 themes-old/
 updraft/
 upgrade/
+
+!uploads/essential-grid/
