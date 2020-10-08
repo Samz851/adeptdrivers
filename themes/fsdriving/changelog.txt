@@ -1,0 +1,39 @@
+Version 1.3.0
+    	Added:
+    		- Compatibility with WP 5.2.1
+    		- Compatibility with PHP7.3
+    		- Compatibility with WP GDPR Compliance
+			- Alert to Demo data installation
+            - Privacy Policy page
+
+        Fixed:
+			- Compatibility with Gutenberg
+            - Update plugins to their latest versions
+            - Improve theme styles
+            - Update scripts  libraries
+
+
+        Changed:
+    		- Update default contact forms to make them GDPR-compliant
+    		- Update demo data
+
+Version 1.2
+    Fixed:
+    - Compatibility with PHP7
+    - Compatibility with WordPress 4.9.5
+    - Update plugins to their latest versions
+    - Compatibility with WooCommerce 3.0+
+    - Improve theme styles 
+
+Version 1.1.Dev.01
+    Fixed style
+
+Version 1.1
+    Contact Form 7 styles improved
+    plugins updated
+
+Version 1.0.1
+	- Documentation updated
+	
+Version 1.0
+    - Release

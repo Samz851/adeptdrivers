@@ -1,0 +1,78 @@
+/* Tooltips */
+.trx_addons_tooltip {
+	border-bottom-style: solid;
+}
+.trx_addons_tooltip:before {
+	font-size:1em;
+	line-height:1.3em;
+	padding: 0.6em 1em;
+	-webkit-transform:translateX(-50%);
+	   -moz-transform:translateX(-50%);
+	    -ms-transform:translateX(-50%);
+	        transform:translateX(-50%);
+	-webkit-border-radius: 0 !important;
+	   -moz-border-radius: 0 !important;
+			border-radius: 0 !important;
+}
+.trx_addons_tooltip:after {
+	margin-bottom:-8px;
+	-webkit-transform:none;
+	   -moz-transform:none;
+	    -ms-transform:none;
+	        transform:none;
+}
+
+
+/* Dropcaps */
+.trx_addons_dropcap {
+	font-size:2.3571em;
+	font-weight: 700;
+	line-height: 1.9em;
+	padding: 0;
+	margin: 0.25em 0.5em 0 0;
+	width: 1.9em;
+	height: 1.9em;
+}
+
+/* Tiny text */
+.trx_addons_tiny_text {
+	letter-spacing:2px;
+}
+
+/* Lists */
+.trx_addons_list_parameters > li > strong,
+.trx_addons_list_parameters > li > em {
+	color:inherit;
+}
+.trx_addons_list_parameters > li > em {
+	font-family:inherit;
+}
+
+.trx_addons_tooltip {
+	font-weight: 400;
+}
+
+ol[class*="trx_addons_list"] > li,
+ul[class*="trx_addons_list"] > li {
+	font-size: 1.143em;
+	line-height: 1.875em;
+}
+ul[class*="trx_addons_list"][class*="_circled"] > li:before {
+	font-size: 8px;
+	left: -2.7em;
+	top: 1em;
+	width: 1.6em;
+	height: 1.6em;
+	line-height: 1.8em;
+}
+
+ul.trx_addons_list_arrow > li:before {
+	content: '\e950';
+	font-family: 'fontello';
+	font-size: 12px;
+	left: -1.6em;
+	top: 0.4em;
+	width: 1.6em;
+	height: 1.6em;
+	line-height: 1.8em;
+}
