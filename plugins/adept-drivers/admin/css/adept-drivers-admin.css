@@ -1,0 +1,19 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+
+div.adminpage {
+    padding: 1.25rem;
+}
+div.ad-api-inputs {
+    padding: 10px;
+    background: white;
+    box-shadow: 0em 0em 0.75em #ddd;
+}
+div.adminpage input {
+    padding: 2px 5px;
+    width: 90%;
+    border-radius: 0px;
+    border-color: #eee;
+}
