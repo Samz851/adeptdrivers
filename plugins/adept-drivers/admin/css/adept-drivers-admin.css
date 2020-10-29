@@ -11,7 +11,7 @@ div.ad-api-inputs {
     background: white;
     box-shadow: 0em 0em 0.75em #ddd;
 }
-div.adminpage input {
+div.adminpage input:not([type=submit]) {
     padding: 2px 5px;
     width: 90%;
     border-radius: 0px;
