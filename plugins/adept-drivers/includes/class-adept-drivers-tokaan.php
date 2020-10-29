@@ -102,8 +102,8 @@ class Adept_Drivers_Tookan
             'latitude'=> '28.5494489',
             'longitude'=> '77.2001368',
             'job_description'=> 'Beauty services',
-            'job_pickup_datetime'=> '2020-10-28 12:15:00',
-            'job_delivery_datetime'=> '2020-10-28 12:15:00',
+            'job_pickup_datetime'=> '2020-11-28 12:15:00',
+            'job_delivery_datetime'=> '2020-11-28 12:15:00',
             'has_pickup'=> '0',
             'has_delivery'=> '0',
             'layout_type'=> '2',
@@ -149,6 +149,92 @@ class Adept_Drivers_Tookan
 
     }
 
+    /**
+     * Get All Agents Available
+     * 
+     * @since 1.0.0
+     */
+    public function get_all_agents(){
+        $url = $this->api_url . 'get_all_fleets';
+        $body = array(
+            'api_key'=> $this->api_key,
+            'status'=> 0,
+            'fleet_type'=> 1
+        );
+
+        $response = wp_remote_post( $url, array(
+            'method'      => 'POST',
+            'timeout'     => 45,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array('Content-Type'=> 'application/json'),
+            'body'        => json_encode($body),
+            'cookies'     => array()
+            )
+        );
+        if ( is_wp_error( $response ) ) {
+            wp_send_json(array(
+                "success" => false,
+                "message" => $response->get_error_message()
+            ), 400);
+        } else {
+            wp_send_json(array(
+                "success" => true,
+                "message" => $response['body'],
+                'key' => $this->api_key,
+                'body' => $body
+            ));
+        }
+
+
+    }
+
+    /**
+     * Assing task to agent
+     * 
+     * @since 1.0.0
+     */
+    public function assign_task_to_agent($agentID = 0, $taskID = 0){
+        $url = $this->api_url . 'assign_task';
+        $taskID = 154551638;
+        $agentID = 581960;
+        $teamID = 354771;
+
+        $body = array(
+            'api_key'=> $this->api_key,
+            'job_id'=> $taskID,
+            'fleet_id'=> $agentID,
+            'team_id'=> $teamID,
+            'job_status'=> 6
+        );
+
+        $response = wp_remote_post( $url, array(
+            'method'      => 'POST',
+            'timeout'     => 45,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array('Content-Type'=> 'application/json'),
+            'body'        => json_encode($body),
+            'cookies'     => array()
+            )
+        );
+        if ( is_wp_error( $response ) ) {
+            wp_send_json(array(
+                "success" => false,
+                "message" => $response->get_error_message()
+            ), 400);
+        } else {
+            wp_send_json(array(
+                "success" => true,
+                "message" => $response['body'],
+                'key' => $this->api_key,
+                'body' => $body
+            ));
+        }
+    }
+
 
     /**
      * Ajax to display key
@@ -170,6 +256,8 @@ class Adept_Drivers_Tookan
 	public function run_all(){
         add_action( 'wp_ajax_ad_get_tookan_key', array($this, 'ajax_ad_display_key'));
         add_action( 'wp_ajax_ad_create_tookan_task', array($this, 'create_task'));
+        add_action( 'wp_ajax_ad_get_agents', array($this, 'get_all_agents'));
+        add_action ( 'wp_ajax_ad_assign_task_to_agent', array($this, 'assign_task_to_agent'));
 	}
     
 }
