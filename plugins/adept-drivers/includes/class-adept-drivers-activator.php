@@ -30,7 +30,9 @@ class Adept_Drivers_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
-
+		// require_once plugin_dir_path( __FILE__  ) . '../includes/class-adept-drivers-zcrm.php';
+		// $ad_zcrm = new Adept_Drivers_ZCRM;
+		// add_action( 'rest_api_init', array($ad_zcrm, 'zcrm_resapi'));
 	}
 
 }

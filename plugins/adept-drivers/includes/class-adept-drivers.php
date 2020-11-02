@@ -153,9 +153,12 @@ class Adept_Drivers {
 	private function define_admin_hooks() {
 
 		$plugin_admin = new Adept_Drivers_Admin( $this->get_plugin_name(), $this->get_version() );
-
+		require_once plugin_dir_path( __FILE__  ) . '/class-adept-drivers-zcrm.php';
+		$ad_zcrm = new Adept_Drivers_ZCRM;
+		// add_action( 'rest_api_init', array($ad_zcrm, 'zcrm_resapi'));
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		$this->loader->add_action( 'rest_api_init', $ad_zcrm, 'zcrm_resapi');
 
 	}
 
