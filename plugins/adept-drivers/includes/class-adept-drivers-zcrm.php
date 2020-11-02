@@ -37,6 +37,16 @@ class Adept_Drivers_ZCRM {
      * @return void
      */
     public function handle_zcrm_notifications( $request ){
+        
+        $DOCUMENT_ROOT = $_SERVER['DOCUMENT_ROOT'];
+        $filename= $DOCUMENT_ROOT. '/wp-content/plugins/READTHIS.json';
+		$post_data = $request->get_body_params();
+		// $data = 
+		$f = fopen($filename, 'w');
+		fwrite($f, json_encode($post_data));
+		fclose($f);
+		// $post_data = $_POST['form_data'];
+		// $post_data['post_type'] = 'wpqform';
         $response = new WP_REST_Response( array(
             'success' => true,
             'message' => 'You\'ve reached the ZCRM endpoint'
