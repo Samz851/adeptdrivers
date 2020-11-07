@@ -126,7 +126,7 @@ class Adept_Drivers_Admin {
 			array()
 		 );
 		add_role( 'student' , __( 'Student', 'adept-drivers' ),
-			array()
+			get_role( 'customer' )->capabilities
 		);
 	}
 

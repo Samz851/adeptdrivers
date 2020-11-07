@@ -32,21 +32,81 @@ class Adept_Drivers_ZCRM {
     }
 
     /**
-     * Handle ZCRM Webhook
+     * Handle ZCRM Webhook for new contacts
      *
      * @return void
      */
     public function handle_zcrm_notifications( $request ){
         
-        $DOCUMENT_ROOT = $_SERVER['DOCUMENT_ROOT'];
-        $filename= $DOCUMENT_ROOT. '/wp-content/plugins/READTHIS.json';
-		$post_data = $request->get_body_params();
+        // $DOCUMENT_ROOT = $_SERVER['DOCUMENT_ROOT'];
+        // $filename= $DOCUMENT_ROOT. '/wp-content/plugins/READTHIS.json';
+
+        /** 
+         * The post data fetched raw
+         */
+        $post_data = $request->get_body_params();
+
+        /**
+         * Post data mutated to array
+         */
+        $post_data = json_decode(json_encode($post_data), true);
+        if(is_array($post_data)){
+            /**
+             * Generate password
+             */
+            $pass = wp_generate_password( $length = 12, $include_standard_special_chars = false );
+
+            /**
+             * Prep userdata
+             */
+            $userdata = array(
+                'user_pass'             => $pass,   //(string) The plain-text user password.
+                'user_login'            => explode('@',$post_data['studentemail'])[0],   //(string) The user's login username.
+                'user_nicename'         => str_replace('.','_',explode('@',$post_data['studentemail'])[0]),   //(string) The URL-friendly user name.
+                'user_email'            => $post_data['studentemail'],   //(string) The user email address.
+                'display_name'          => $post_data['studentname'],   //(string) The user's display name. Default is the user's username.
+                'first_name'            => explode(' ', $post_data['studentname'])[0],   //(string) The user's first name. For new users, will be used to build the first part of the user's display name if $display_name is not specified.
+                'last_name'             => explode(' ', $post_data['studentname'])[1],   //(string) The user's last name. For new users, will be used to build the second part of the user's display name if $display_name is not specified.
+                'user_registered'       => $post_data['studentregistration'],   //(string) Date the user registered. Format is 'Y-m-d H:i:s'.
+                'show_admin_bar_front'  => 'false',   //(string|bool) Whether to display the Admin Bar for the user on the site's front end. Default true.
+                'role'                  => 'student',   //(string) User's role.
+             
+            );
+
+            /**
+             * create new user
+             * 
+             * @return Int|WP_error
+             */
+            $new_user = wp_insert_user($userdata);
+
+            if(!is_wp_error($new_user)){
+                /**
+                 * Prep user metadata
+                 */
+                $usermetas = array(
+                    'userpostal' => $post_data['studentpostal'], //(string) The user's Postal Code
+                    'userlicense' => $post_data['studentlicense'], //(string) The user's License number
+                    'userphone' => $post_data['studentphone'], //(string) The user's phone number
+                    'userlicensedate' => $post_data['studentlcissue'],
+                    'userdob' => $post_data['studentdob'], //(string) user's date of birth
+                    'userzohoId' => $post_data['studentid'] //(string) User's zoho ID
+                );
+
+                /**
+                 * Add user metas
+                 */
+                foreach ( $userdata as $key=>$value ){
+                    add_user_meta( $new_user, $key, $value, true );
+                }
+            }
+        };
 		// $data = 
-		$f = fopen($filename, 'w');
-		fwrite($f, json_encode($post_data));
-		fclose($f);
-		// $post_data = $_POST['form_data'];
-		// $post_data['post_type'] = 'wpqform';
+		// $f = fopen($filename, 'w');
+		// fwrite($f, json_encode($post_data));
+		// fclose($f);
+		// // $post_data = $_POST['form_data'];
+		// // $post_data['post_type'] = 'wpqform';
         $response = new WP_REST_Response( array(
             'success' => true,
             'message' => 'You\'ve reached the ZCRM endpoint'
