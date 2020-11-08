@@ -74,6 +74,11 @@ class Adept_Drivers_ZCRM {
             );
 
             /**
+             * Holds core data from zcrm
+             */
+            $zcrm_core = ['studentemail', 'studentname', 'studentregistration'];
+
+            /**
              * create new user
              * 
              * @return Int|WP_error
@@ -81,24 +86,29 @@ class Adept_Drivers_ZCRM {
             $new_user = wp_insert_user($userdata);
 
             if(!is_wp_error($new_user)){
-                /**
-                 * Prep user metadata
-                 */
-                $usermetas = array(
-                    'userpostal' => $post_data['studentpostal'], //(string) The user's Postal Code
-                    'userlicense' => $post_data['studentlicense'], //(string) The user's License number
-                    'userphone' => $post_data['studentphone'], //(string) The user's phone number
-                    'userlicensedate' => $post_data['studentlcissue'],
-                    'userdob' => $post_data['studentdob'], //(string) user's date of birth
-                    'userzohoId' => $post_data['studentid'] //(string) User's zoho ID
+               /**
+                * Convert address data
+                */
+                $user_address = array(
+                    'student_address_1' => 'billing_address_1',
+                    'student_city' => 'billing_city',
+                    'studentpostal' => 'billing_postcode',
+                    'student_state' => 'billing_state'
                 );
 
                 /**
-                 * Add user metas
+                 * Add user meta -- only if not core
                  */
-                foreach ( $userdata as $key=>$value ){
-                    add_user_meta( $new_user, $key, $value, true );
-                }
+
+                 foreach ( $post_data as $key=>$value ){
+                     if(!in_array($key, $zcrm_core)){
+                         if(array_key_exists($key, $user_address)){
+                             add_user_meta( $new_user, $user_address[$key], $value, true);
+                         }else{
+                            add_user_meta( $new_user, '_' . $key, $value, true );
+                         }
+                     }
+                 }
             }
         };
 		// $data = 
