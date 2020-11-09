@@ -177,7 +177,5 @@ class Adept_Drivers_Pages {
 	 * @since 1.0.0
 	 */
 	public function run_all(){
-        add_action( 'admin_menu', array( $this, 'add_admin_menu') );
-        add_action( 'admin_init', array( $this, 'register_wpq_settings') );
 	}
 }

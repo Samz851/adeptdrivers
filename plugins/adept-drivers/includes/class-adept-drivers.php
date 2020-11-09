@@ -155,10 +155,17 @@ class Adept_Drivers {
 		$plugin_admin = new Adept_Drivers_Admin( $this->get_plugin_name(), $this->get_version() );
 		require_once plugin_dir_path( __FILE__  ) . '/class-adept-drivers-zcrm.php';
 		$ad_zcrm = new Adept_Drivers_ZCRM;
+		require_once plugin_dir_path(__FILE__) . '../admin/class-adept-drivers-pages.php';
+		$plugin_pages = new Adept_Drivers_Pages;
 		// add_action( 'rest_api_init', array($ad_zcrm, 'zcrm_resapi'));
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action( 'rest_api_init', $ad_zcrm, 'zcrm_resapi');
+		$this->loader->add_action( 'admin_menu', $plugin_pages, 'add_admin_menu');
+		$this->loader->add_action( 'admin_init', $plugin_pages, 'register_wpq_settings');
+		$this->loader->add_action( 'woocommerce_product_options_general_product_data', $plugin_admin, 'ad_wc_product_custom_fields');
+		$this->loader->add_action( 'woocommerce_process_product_meta', $plugin_admin, 'ad_wc_product_custom_fields_save');
+		$this->loader->add_action( 'woocommerce_register_form_start', $plugin_admin, 'ad_extra_register_fields');
 
 	}
 
@@ -175,7 +182,7 @@ class Adept_Drivers {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
-
+		$this->loader->add_filter( 'woocommerce_locate_template', $plugin_public, 'ad_override_wc_template', 1, 3);
 	}
 
 	/**

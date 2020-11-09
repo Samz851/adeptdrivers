@@ -93,7 +93,8 @@ class Adept_Drivers_ZCRM {
                     'student_address_1' => 'billing_address_1',
                     'student_city' => 'billing_city',
                     'studentpostal' => 'billing_postcode',
-                    'student_state' => 'billing_state'
+                    'student_state' => 'billing_state',
+                    'student_phone' => 'billing_phone'
                 );
 
                 /**

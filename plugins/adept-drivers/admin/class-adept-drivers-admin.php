@@ -131,6 +131,101 @@ class Adept_Drivers_Admin {
 	}
 
 	/**
+	 * Add custom fields to each product
+	 * 
+	 * @since 1.0.0
+	 */
+	function ad_wc_product_custom_fields(){
+        global $woocommerce, $post;
+        echo '<div class="product_custom_field">';
+
+        woocommerce_wp_text_input(
+            array(
+                'id' => 'in_car_sessions',
+                'placeholder' => 'In Car Sessions',
+                'label' => __('In Car Sessions', 'adept-drivers'),
+				'class' => 'ad-prod-meta',
+				'type'  => 'number',
+            )
+		);
+		woocommerce_wp_checkbox( 
+			array( 
+				'id'            => 'includes_bde', 
+				'wrapper_class' => 'ad-prod-meta', 
+				'label'         => __('Includes BDE Course', 'adept-adapters' ), 
+				'description'   => __( 'Includes a BDE course with this product', 'adept-drivers' ) 
+				)
+			);
+        echo '</div>';
+	}
+	
+	/**
+	 * Save custom fields of products
+	 * 
+	 * @since 1.0.0
+	 */
+	function ad_wc_product_custom_fields_save( $post_id ){
+		$fields = $_POST;
+		// $metas = ['lab_report', 'faq', 'why_buy', 'suggested_use', 'ingredients', 'product_facts', 'amount_cbd', 'total_cbd', 'size_volume'];
+		// $wysiwyg_keys = ['faq', 'ingredients', 'why_buy'];
+		foreach ($fields as $key => $value) {
+			if( $key == 'in_car_sessions' || $key == 'includes_bde'){
+				update_post_meta($post_id, $key, $value);
+			}
+		}
+	}
+
+	/**
+	 * add registration fields
+	 * 
+	 * @since 1.0.0
+	 */
+	function ad_extra_register_fields() {?>
+		<p class="form-row form-row-wide">
+		<label for="reg_billing_phone"><?php _e( 'Phone', 'woocommerce' ); ?></label>
+		<input type="text" class="input-text" name="billing_phone" id="reg_billing_phone" value="<?php esc_attr_e( $_POST['billing_phone'] ); ?>" />
+		</p>
+		<p class="form-row form-row-first">
+		<label for="reg_billing_first_name"><?php _e( 'First name', 'adept-drivers' ); ?><span class="required">*</span></label>
+		<input type="text" class="input-text" name="billing_first_name" id="reg_billing_first_name" value="<?php if ( ! empty( $_POST['billing_first_name'] ) ) esc_attr_e( $_POST['billing_first_name'] ); ?>" />
+		</p>
+		<p class="form-row form-row-last">
+		<label for="reg_billing_last_name"><?php _e( 'Last name', 'adept-drivers' ); ?><span class="required">*</span></label>
+		<input type="text" class="input-text" name="billing_last_name" id="reg_billing_last_name" value="<?php if ( ! empty( $_POST['billing_last_name'] ) ) esc_attr_e( $_POST['billing_last_name'] ); ?>" />
+		</p>
+		<p class="form-row form-row-wide">
+		<label for="student_dob"><?php _e( 'Date of Birth', 'adept-drivers' ); ?><span class="required">*</span></label>
+		<input type="date" class="input-text" name="student_dob" id="student_dob" value="<?php if ( ! empty( $_POST['student_dob'] ) ) esc_attr_e( $_POST['student_dob'] ); ?>" />
+		</p>
+		<p class="form-row form-row-first">
+		<label for="reg_billing_address_1"><?php _e( 'Address', 'adept-drivers' ); ?><span class="required">*</span></label>
+		<input type="text" class="input-text" name="billing_address_1" id="reg_billing_address_1" value="<?php if ( ! empty( $_POST['billing_address_1'] ) ) esc_attr_e( $_POST['billing_address_1'] ); ?>" />
+		</p>
+		<p class="form-row form-row-last">
+		<label for="reg_billing_city"><?php _e( 'City', 'adept-drivers' ); ?><span class="required">*</span></label>
+		<input type="text" class="input-text" name="billing_city" id="reg_billing_city" value="<?php if ( ! empty( $_POST['billing_city'] ) ) esc_attr_e( $_POST['billing_city'] ); ?>" />
+		</p>
+		<p class="form-row form-row-first">
+		<label for="reg_billing_postcode"><?php _e( 'Postal Code', 'adept-drivers' ); ?><span class="required">*</span></label>
+		<input type="text" class="input-text" name="billing_postcode" id="reg_billing_postcode" value="<?php if ( ! empty( $_POST['billing_postcode'] ) ) esc_attr_e( $_POST['billing_address_1'] ); ?>" />
+		</p>
+		<p class="form-row form-row-last">
+		<label for="reg_billing_state"><?php _e( 'Province', 'adept-drivers' ); ?><span class="required">*</span></label>
+		<input type="text" class="input-text" name="billing_state" id="reg_billing_state" value="<?php if ( ! empty( $_POST['billing_state'] ) ) esc_attr_e( $_POST['billing_state'] ); ?>" />
+		</p>
+		<p class="form-row form-row-first">
+		<label for="student_license"><?php _e( 'License #', 'adept-drivers' ); ?><span class="required">*</span></label>
+		<input type="text" class="input-text" name="student_license" id="student_license" value="<?php if ( ! empty( $_POST['student_license'] ) ) esc_attr_e( $_POST['student_license'] ); ?>" />
+		</p>
+		<p class="form-row form-row-last">
+		<label for="student_lcissue"><?php _e( 'License Issued', 'adept-drivers' ); ?><span class="required">*</span></label>
+		<input type="date" class="input-text" name="student_lcissue" id="student_lcissue" value="<?php if ( ! empty( $_POST['student_lcissue'] ) ) esc_attr_e( $_POST['student_lcissue'] ); ?>" />
+		</p>
+		<div class="clear"></div>
+		<?php
+  }
+
+	/**
 	 * Function to run all admin hooks
 	 * 
 	 * @since 1.0.0
