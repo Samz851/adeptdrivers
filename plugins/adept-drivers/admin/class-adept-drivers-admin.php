@@ -223,7 +223,58 @@ class Adept_Drivers_Admin {
 		</p>
 		<div class="clear"></div>
 		<?php
-  }
+	  }
+	  
+	  /**
+	   * Deactivate all newly registered users
+	   * 
+	   * @param int $user_id
+	   * 
+	   * @since 1.0.0
+	   */
+	  function inactive_user_registration( $user_id ){
+		if( !empty($_POST) ){
+			add_user_meta( $user_id, 'ad_is_active', false, true);
+		}
+	  }
+
+	  /**
+	   * adjust query to skip inactive users
+	   * 
+	   * @param WP_User_Query $args
+	   * 
+	   * @since 1.0.0
+	   */
+	  function skip_inactive_user_query( $args ){
+		  $args['meta_query'] = array(
+			'relation' => 'OR',
+			array(
+				'key'     => 'ad_is_active',
+                'value'   => true,
+			),
+			array(
+				'key'     => 'ad_is_active',
+				'compare' => 'NOT EXISTS'
+			)
+			
+		  );
+
+		  return $args;
+	  }
+
+	  /**
+	   * Activate users after purchase
+	   * 
+	   * @param int $order_id
+	   * @since 1.0.0
+	   */
+	  function activate_user_after_purchase( $order_id ){
+		$order = wc_get_order( $order_id );
+		$user = $order->get_user_id();
+		if( $user ){
+			update_user_meta( $user, 'ad_is_active', true, true);
+		}
+	  }
 
 	/**
 	 * Function to run all admin hooks

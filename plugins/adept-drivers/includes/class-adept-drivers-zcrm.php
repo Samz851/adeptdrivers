@@ -110,6 +110,7 @@ class Adept_Drivers_ZCRM {
                          }
                      }
                  }
+                 add_user_meta( $new_user, 'ad_is_active', true, true);
             }
         };
 		// $data = 
