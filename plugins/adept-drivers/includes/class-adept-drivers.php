@@ -186,6 +186,7 @@ class Adept_Drivers {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 		$this->loader->add_filter( 'woocommerce_locate_template', $plugin_public, 'ad_override_wc_template', 1, 3);
+		$this->loader->add_action( 'template_redirect', $plugin_public, 'ad_redirect_pre_checkout');
 	}
 
 	/**
