@@ -168,6 +168,7 @@ class Adept_Drivers {
 		$this->loader->add_action( 'woocommerce_register_form_start', $plugin_admin, 'ad_extra_register_fields');
 		$this->loader->add_action( 'user_register', $plugin_admin, 'inactive_user_registration');
 		$this->loader->add_action( 'woocommerce_payment_complete', $plugin_admin, 'activate_user_after_purchase');
+		$this->loader->add_action( 'woocommerce_order_status_completed', $plugin_admin, 'activate_user_after_purchase');
 		$this->loader->add_filter( 'users_list_table_query_args', $plugin_admin, 'skip_inactive_user_query');
 
 	}

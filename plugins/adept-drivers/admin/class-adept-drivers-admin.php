@@ -271,8 +271,11 @@ class Adept_Drivers_Admin {
 	  function activate_user_after_purchase( $order_id ){
 		$order = wc_get_order( $order_id );
 		$user = $order->get_user_id();
+		$order->add_order_note( $user );
+		$order->add_order_note(__('This is a test note', 'adept-drivers'));
 		if( $user ){
-			update_user_meta( $user, 'ad_is_active', true, true);
+
+			update_user_meta( $user, 'ad_is_active', true);
 		}
 	  }
 
