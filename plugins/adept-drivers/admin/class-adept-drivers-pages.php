@@ -276,11 +276,9 @@ class Adept_Drivers_Pages {
 		?>
 		<input type="text" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="ad_options[<?php echo esc_attr( $args['label_for'] ); ?>]" 
 		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
+		<button id="generate_token"><?php __('Generate Access Tokens', 'adept-drivers'); ?></button>
+
 		<?php
-			if(get_option('ad_zcrm_expired_token') == 'expired'){
-				?> <span class="alert danger">EXPIRED</span>
-				<?php
-			}
 	}
 
     /**

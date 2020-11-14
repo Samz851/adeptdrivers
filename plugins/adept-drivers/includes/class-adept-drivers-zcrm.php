@@ -73,7 +73,7 @@ class Adept_Drivers_ZCRM {
         $this->zcrm_redirect_uri = get_option('ad_options')['ad_zcrm_redirect_uri'];
         $this->zcrm_email = get_option('ad_options')['ad_zcrm_email'];
         $this->zcrm_temp_token = get_option('ad_options')['ad_zcrm_temp_token'];
-        $this->init_zcrm_client();
+        // $this->init_zcrm_client();
     }
 
     /**
@@ -212,15 +212,21 @@ class Adept_Drivers_ZCRM {
 
             ZCRMRestClient::initialize( $this->configuration );
             $oAuthClient = ZohoOAuth::getClientInstance(); 
-            $oAuthTokens = $oAuthClient->generateAccessToken($this->zcrm_temp_token);
-            $userIdentifier = $this->zcrm_email; 
-            // $oAuthClient->generateAccessTokenFromRefreshToken($refreshToken,$userIdentifier);
+            try{
+                $oAuthTokens = $oAuthClient->generateAccessToken($this->zcrm_temp_token);
+                $userIdentifier = $this->zcrm_email; 
+                // $oAuthClient->generateAccessTokenFromRefreshToken($refreshToken,$userIdentifier);
+                // var_dump($oAuthClient);
+            }catch(Exception $e){
+                echo $e->getMessage();
+            }
+
             ZohoOAuth::initialize( $this->configuration );
-            var_dump($oAuthClient);
-    
+
             $this->zinst = ZCRMRestClient::getInstance();
 
         }
+
 
         
 
@@ -297,6 +303,21 @@ class Adept_Drivers_ZCRM {
         ));
     }
 
+    public function ajax_generate_token(){
+        try{
+            $this->init_zcrm_client();
+            wp_send_json(array(
+                "success" => true,
+                "message" => "Successfully Generated Tokens"
+            ));
+        }catch(Exception $e){
+            wp_send_json(array(
+                "success" => false,
+                "message" => $e->getMessage()
+            ));
+        }
+    }
+
     /**
 	 * Function to run all admin hooks
 	 * 
@@ -305,6 +326,7 @@ class Adept_Drivers_ZCRM {
 	public function run_all(){
 
         add_action( 'wp_ajax_ad_zcrm_get_modules', array($this, 'ad_zcrm_get_modules'));
+        add_action( 'wp_ajax_generate_zcrm_token', array($this, 'ajax_generate_token'));
 
 	}
 }
