@@ -54,6 +54,11 @@ class Adept_Drivers_ZCRM {
     private $zcrm_uri = 'https://accounts.zoho.com/oauth/v2/token';
 
     /**
+     * Path to token storage
+     */
+    private $zcrm_token_storage = require plugin_dir_path( __DIR__ ) . '/TokenStorage';
+
+    /**
      * Constructor function
      * 
      * @since 1.0.0
@@ -183,7 +188,8 @@ class Adept_Drivers_ZCRM {
             "client_id"=>$this->zcrm_id,
             "client_secret"=> $this->zcrm_secret,
             "redirect_uri"=> $this->zcrm_redirect_uri,
-            "currentUserEmail"=> $this->zcrm_email
+            "currentUserEmail"=> $this->zcrm_email,
+            'token_persistence_path' => $this->zcrm_token_storage
         );
 
         if( $this->zcrm_temp_token ){
