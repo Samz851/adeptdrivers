@@ -31,6 +31,68 @@ class Adept_Drivers_Pages {
 			]
 		);
 
+		//register a new field for Zoho CRM Keys
+
+		add_settings_field(
+			'ad_zcrm_api_id',
+			__( 'Zoho CRM Client ID', 'adept-drivers'),
+			[$this, 'ad_zcrm_CID_field_cb'],
+			'ad-api-settings',
+			'ad-api_section_options',
+			[
+				'label_for' => 'ad_zcrm_cid',
+				'class' => 'ad_zcrm_cid'
+			]
+		);
+
+		add_settings_field(
+			'ad_zcrm_api_sec',
+			__( 'Zoho CRM Client Secret', 'adept-drivers'),
+			[$this, 'ad_zcrm_Csecret_field_cb'],
+			'ad-api-settings',
+			'ad-api_section_options',
+			[
+				'label_for' => 'ad_zcrm_csecret',
+				'class' => 'ad_zcrm_csecret'
+			]
+		);
+
+		add_settings_field(
+			'ad_zcrm_api_email',
+			__( 'Zoho CRM Client Email', 'adept-drivers'),
+			[$this, 'ad_zcrm_email_field_cb'],
+			'ad-api-settings',
+			'ad-api_section_options',
+			[
+				'label_for' => 'ad_zcrm_email',
+				'class' => 'ad_zcrm_email'
+			]
+		);
+
+		add_settings_field(
+			'ad_zcrm_api_redirect_uri',
+			__( 'Zoho CRM Redirect URI', 'adept-drivers'),
+			[$this, 'ad_zcrm_redirect_field_cb'],
+			'ad-api-settings',
+			'ad-api_section_options',
+			[
+				'label_for' => 'ad_zcrm_redirect_uri',
+				'class' => 'ad_zcrm_redirect_uri'
+			]
+		);
+
+		add_settings_field(
+			'ad_zcrm_api_temp_token',
+			__( 'Zoho CRM Temporary Token', 'adept-drivers'),
+			[$this, 'ad_zcrm_temp_token_cb'],
+			'ad-api-settings',
+			'ad-api_section_options',
+			[
+				'label_for' => 'ad_zcrm_temp_token',
+				'class' => 'ad_zcrm_temp_token'
+			]
+		);
+
 		// // register a new section in the "settings" page
 		// add_settings_section(
 		// 	'wpquotes_section_options_recaptcha',
@@ -130,7 +192,96 @@ class Adept_Drivers_Pages {
 		<input type="text" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="ad_options[<?php echo esc_attr( $args['label_for'] ); ?>]" 
 		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
 		<?php
-	   }
+	}
+
+	/**
+	 * Callback for options field
+	 * 
+	 * @since 1.0.0
+	 * 
+	 * @param Array arguements defined in add_settings_field()
+	 */
+	public function ad_zcrm_CID_field_cb( $args ) {
+		// get the value of the setting we've registered with register_setting()
+		$options = get_option( 'ad_options' );
+		// output the field
+		?>
+		<input type="text" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="ad_options[<?php echo esc_attr( $args['label_for'] ); ?>]" 
+		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
+		<?php
+	}
+
+	/**
+	 * Callback for options field
+	 * 
+	 * @since 1.0.0
+	 * 
+	 * @param Array arguements defined in add_settings_field()
+	 */
+	public function ad_zcrm_Csecret_field_cb( $args ) {
+		// get the value of the setting we've registered with register_setting()
+		$options = get_option( 'ad_options' );
+		// output the field
+		?>
+		<input type="text" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="ad_options[<?php echo esc_attr( $args['label_for'] ); ?>]" 
+		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
+		<?php
+	}
+
+		/**
+	 * Callback for options field
+	 * 
+	 * @since 1.0.0
+	 * 
+	 * @param Array arguements defined in add_settings_field()
+	 */
+	public function ad_zcrm_email_field_cb( $args ) {
+		// get the value of the setting we've registered with register_setting()
+		$options = get_option( 'ad_options' );
+		// output the field
+		?>
+		<input type="email" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="ad_options[<?php echo esc_attr( $args['label_for'] ); ?>]" 
+		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
+		<?php
+	}
+
+	/**
+	 * Callback for options field
+	 * 
+	 * @since 1.0.0
+	 * 
+	 * @param Array arguements defined in add_settings_field()
+	 */
+	public function ad_zcrm_redirect_field_cb( $args ) {
+		// get the value of the setting we've registered with register_setting()
+		$options = get_option( 'ad_options' );
+		// output the field
+		?>
+		<input type="text" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="ad_options[<?php echo esc_attr( $args['label_for'] ); ?>]" 
+		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
+		<?php
+	}
+
+	/**
+	 * Callback for options field
+	 * 
+	 * @since 1.0.0
+	 * 
+	 * @param Array arguements defined in add_settings_field()
+	 */
+	public function ad_zcrm_temp_token_cb( $args ) {
+		// get the value of the setting we've registered with register_setting()
+		$options = get_option( 'ad_options' );
+		// output the field
+		?>
+		<input type="text" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="ad_options[<?php echo esc_attr( $args['label_for'] ); ?>]" 
+		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
+		<?php
+			if(get_option('ad_zcrm_expired_token') == 'expired'){
+				?> <span class="alert danger">EXPIRED</span>
+				<?php
+			}
+	}
 
     /**
 	 * Register the admin menu page
