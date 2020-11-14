@@ -23,7 +23,7 @@
         var createBtn = $('#create-task');
         var getAgentsBtn = $('#get-agents');
         var assignTaskBtn = $('#assign-task');
-        var zcrmBtn = $('#assign-task');
+        var zcrmBtn = $('#ad-get-zcrm');
         /**
          * Test Get Tookan Key
          */
@@ -98,6 +98,23 @@
          /**
           * Get Zoho Modules
           */
+            /**
+          * Assign Task to Agent
+          */
+          zcrmBtn.on('click', e => {
+             e.preventDefault();
+            console.log('CLICKEDDDD')
+             var data = {
+                 'action' : 'ad_zcrm_get_modules'
+             }
+
+             $.post(ajaxurl, data, response => {
+                if(response){
+                     $('.ad-get-zcrm').append(`<pre>${JSON.stringify(JSON.parse(response.message), null, 2)}</pre>`)
+                     console.log(JSON.parse(response.message));
+                 }
+             })
+         })
 
     })
 </script>

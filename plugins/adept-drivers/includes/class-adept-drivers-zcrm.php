@@ -73,6 +73,7 @@ class Adept_Drivers_ZCRM {
         $this->zcrm_redirect_uri = get_option('ad_options')['ad_zcrm_redirect_uri'];
         $this->zcrm_email = get_option('ad_options')['ad_zcrm_email'];
         $this->zcrm_temp_token = get_option('ad_options')['ad_zcrm_temp_token'];
+        $this->generate_token_from_refresh();
         // $this->init_zcrm_client();
     }
 
@@ -180,6 +181,20 @@ class Adept_Drivers_ZCRM {
     }
 
     /**
+     * Generate access token from refresh token
+     * 
+     * @since 1.0.0
+     */
+    private function generate_token_from_refresh(){
+
+        $strarray = unserialize(file_get_contents($this->zcrm_token_storage . '/zcrm_oauthtokens.txt'));
+        // $userIdentifier = $this->zcrm_email; 
+        // $oAuthClient = ZohoOAuth::getClientInstance(); 
+        // $oAuthClient->generateAccessTokenFromRefreshToken($refreshToken,$userIdentifier);
+        // var_dump($strarray);
+    }
+
+    /**
      * Initialize ZCRM SDK
      * 
      * @since 1.0.0
@@ -280,7 +295,15 @@ class Adept_Drivers_ZCRM {
      * @since 1.0.0
      */
     public function get_zcrm_modules( ){
-        $moduleArr = $this->zinst->getAllModules()->getData();
+        $this->configuration = array(
+            "client_id"=>$this->zcrm_id,
+            "client_secret"=> $this->zcrm_secret,
+            "redirect_uri"=> $this->zcrm_redirect_uri,
+            "currentUserEmail"=> $this->zcrm_email,
+            'token_persistence_path' => $this->zcrm_token_storage
+        );
+        ZCRMRestClient::initialize( $this->configuration );
+        $moduleArr = ZCRMRestClient::getInstance()->getAllModules()->getData();
         $names = [];
 
         foreach( $moduleArr as $module ){
@@ -295,7 +318,7 @@ class Adept_Drivers_ZCRM {
      */
     public function ad_zcrm_get_modules(){
 
-        $results = $this->get_zcrm_modules;
+        $results = $this->get_zcrm_modules();
 
         wp_send_json(array(
             "success" => true,
