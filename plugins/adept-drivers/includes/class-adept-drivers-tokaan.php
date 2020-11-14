@@ -257,7 +257,7 @@ class Adept_Drivers_Tookan
         add_action( 'wp_ajax_ad_get_tookan_key', array($this, 'ajax_ad_display_key'));
         add_action( 'wp_ajax_ad_create_tookan_task', array($this, 'create_task'));
         add_action( 'wp_ajax_ad_get_agents', array($this, 'get_all_agents'));
-        add_action( 'wp_ajax_ad_assign_task_to_agent', array($this, 'assign_task_to_agent'));
+        add_action ( 'wp_ajax_ad_assign_task_to_agent', array($this, 'assign_task_to_agent'));
 	}
     
 }
