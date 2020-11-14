@@ -56,7 +56,7 @@ class Adept_Drivers_ZCRM {
     /**
      * Path to token storage
      */
-    private $zcrm_token_storage = require plugin_dir_path( __DIR__ ) . '/TokenStorage';
+    private $zcrm_token_storage;
 
     /**
      * Constructor function
@@ -65,6 +65,7 @@ class Adept_Drivers_ZCRM {
      */
     public function __construct()
     {
+        $this->zcrm_token_storage = plugin_dir_path( __DIR__ ) . '/TokenStorage';
         $this->run_all();
         $this->api_key = get_option('ad_options')['ad_tookan_api'];
         $this->zcrm_id = get_option('ad_options')['ad_zcrm_cid'];
