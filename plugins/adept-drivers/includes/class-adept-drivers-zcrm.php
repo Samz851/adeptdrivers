@@ -186,29 +186,37 @@ class Adept_Drivers_ZCRM {
             "currentUserEmail"=> $this->zcrm_email
         );
 
-        $response = wp_remote_post($this->zcrm_uri . '?code=' . $this->zcrm_temp_token . '&redirect_uri=https://adept-drivers.samiscoding.com/crm-redirect&client_id=1000.HQGSJVRJKW06KMK3E0RNG5XRHHL6DW&client_secret=f223703e8ce8f03f7159c0907985ccd306f2f281fe&grant_type=authorization_code');
-        if (is_wp_error($response)){
-            var_dump($response->get_error_message());
-        }else{
-            $resp_json = json_decode($response['body'], true);
-            if(isset($resp_json['error'])){
-                update_option('ad_zcrm_expired_token', 'expired', true);
-            }else{
-                update_option('ad_zcrm_expired_token', 'active', true);
-                update_option('zcrm_access_token', $resp_json['access_token'], true);
-                update_option('zcrm_refresh_token', $resp_json['refresh_token'], true);
-            }
-            var_dump($response['body']);
-        }
-        ZCRMRestClient::initialize( $this->configuration );
-        $oAuthClient = ZohoOAuth::getClientInstance(); 
-        $refreshToken = get_option('zcrm_refresh_token'); 
-        $userIdentifier = $this->zcrm_email; 
-        $oAuthClient->generateAccessTokenFromRefreshToken($refreshToken,$userIdentifier);
-        // ZohoOAuth::initialize( $this->configuration );
-        var_dump($oAuthClient);
+        if( $this->zcrm_temp_token ){
 
-        $this->zinst = ZCRMRestClient::getInstance();
+            $response = wp_remote_post($this->zcrm_uri . '?code=' . $this->zcrm_temp_token . '&redirect_uri=https://adept-drivers.samiscoding.com/crm-redirect&client_id=1000.HQGSJVRJKW06KMK3E0RNG5XRHHL6DW&client_secret=f223703e8ce8f03f7159c0907985ccd306f2f281fe&grant_type=authorization_code');
+            if (is_wp_error($response)){
+                var_dump($response->get_error_message());
+            }else{
+                $resp_json = json_decode($response['body'], true);
+                if(isset($resp_json['error'])){
+                    update_option('ad_zcrm_expired_token', 'expired', true);
+                }else{
+                    update_option('ad_zcrm_expired_token', 'active', true);
+                    update_option('zcrm_access_token', $resp_json['access_token'], true);
+                    update_option('zcrm_refresh_token', $resp_json['refresh_token'], true);
+                }
+                var_dump($response['body']);
+            }
+
+            ZCRMRestClient::initialize( $this->configuration );
+            $oAuthClient = ZohoOAuth::getClientInstance(); 
+            $refreshToken = get_option('zcrm_refresh_token'); 
+            $userIdentifier = $this->zcrm_email; 
+            $oAuthClient->generateAccessTokenFromRefreshToken($refreshToken,$userIdentifier);
+            // ZohoOAuth::initialize( $this->configuration );
+            var_dump($oAuthClient);
+    
+            $this->zinst = ZCRMRestClient::getInstance();
+
+        }
+
+        
+
         // $oAuthClient = ZohoOAuth::getClientInstance();
         // if($this->zcrm_temp_token){
         //     var_dump($this->zcrm_temp_token);
