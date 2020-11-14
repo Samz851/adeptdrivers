@@ -73,8 +73,17 @@ class Adept_Drivers_ZCRM {
         $this->zcrm_redirect_uri = get_option('ad_options')['ad_zcrm_redirect_uri'];
         $this->zcrm_email = get_option('ad_options')['ad_zcrm_email'];
         $this->zcrm_temp_token = get_option('ad_options')['ad_zcrm_temp_token'];
-        $this->generate_token_from_refresh();
         // $this->init_zcrm_client();
+        $this->configuration = array(
+            "client_id"=>$this->zcrm_id,
+            "client_secret"=> $this->zcrm_secret,
+            "redirect_uri"=> $this->zcrm_redirect_uri,
+            "currentUserEmail"=> get_option('ad_options')['ad_zcrm_email'],
+            'token_persistence_path' => $this->zcrm_token_storage
+        );
+        ZCRMRestClient::initialize( $this->configuration );
+        $this->generate_token_from_refresh();
+
     }
 
     /**
@@ -295,15 +304,7 @@ class Adept_Drivers_ZCRM {
      * @since 1.0.0
      */
     public function get_zcrm_modules( ){
-        $this->configuration = array(
-            "client_id"=>$this->zcrm_id,
-            "client_secret"=> $this->zcrm_secret,
-            "redirect_uri"=> $this->zcrm_redirect_uri,
-            "currentUserEmail"=> get_option('ad_options')['ad_zcrm_email'],
-            'token_persistence_path' => $this->zcrm_token_storage
-        );
-        // ZCRMRestClient::initialize( $this->configuration );
-        
+
         $moduleArr = ZCRMRestClient::getInstance()->getAllModules()->getData();
         $names = [];
 
