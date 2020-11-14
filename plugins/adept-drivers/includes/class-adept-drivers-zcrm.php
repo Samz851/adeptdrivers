@@ -195,27 +195,27 @@ class Adept_Drivers_ZCRM {
 
         if( $this->zcrm_temp_token ){
 
-            $response = wp_remote_post($this->zcrm_uri . '?code=' . $this->zcrm_temp_token . '&redirect_uri=https://adept-drivers.samiscoding.com/crm-redirect&client_id=1000.HQGSJVRJKW06KMK3E0RNG5XRHHL6DW&client_secret=f223703e8ce8f03f7159c0907985ccd306f2f281fe&grant_type=authorization_code');
-            if (is_wp_error($response)){
-                var_dump($response->get_error_message());
-            }else{
-                $resp_json = json_decode($response['body'], true);
-                if(isset($resp_json['error'])){
-                    update_option('ad_zcrm_expired_token', 'expired', true);
-                }else{
-                    update_option('ad_zcrm_expired_token', 'active', true);
-                    update_option('zcrm_access_token', $resp_json['access_token'], true);
-                    update_option('zcrm_refresh_token', $resp_json['refresh_token'], true);
-                }
-                var_dump($response['body']);
-            }
+            // $response = wp_remote_post($this->zcrm_uri . '?code=' . $this->zcrm_temp_token . '&redirect_uri=https://adept-drivers.samiscoding.com/crm-redirect&client_id=1000.HQGSJVRJKW06KMK3E0RNG5XRHHL6DW&client_secret=f223703e8ce8f03f7159c0907985ccd306f2f281fe&grant_type=authorization_code');
+            // if (is_wp_error($response)){
+            //     var_dump($response->get_error_message());
+            // }else{
+            //     $resp_json = json_decode($response['body'], true);
+            //     if(isset($resp_json['error'])){
+            //         update_option('ad_zcrm_expired_token', 'expired', true);
+            //     }else{
+            //         update_option('ad_zcrm_expired_token', 'active', true);
+            //         update_option('zcrm_access_token', $resp_json['access_token'], true);
+            //         update_option('zcrm_refresh_token', $resp_json['refresh_token'], true);
+            //     }
+            //     var_dump($response['body']);
+            // }
 
             ZCRMRestClient::initialize( $this->configuration );
             $oAuthClient = ZohoOAuth::getClientInstance(); 
-            $refreshToken = get_option('zcrm_refresh_token'); 
+            $oAuthTokens = $oAuthClient->generateAccessToken($this->zcrm_temp_token);
             $userIdentifier = $this->zcrm_email; 
-            $oAuthClient->generateAccessTokenFromRefreshToken($refreshToken,$userIdentifier);
-            // ZohoOAuth::initialize( $this->configuration );
+            // $oAuthClient->generateAccessTokenFromRefreshToken($refreshToken,$userIdentifier);
+            ZohoOAuth::initialize( $this->configuration );
             var_dump($oAuthClient);
     
             $this->zinst = ZCRMRestClient::getInstance();
@@ -268,12 +268,44 @@ class Adept_Drivers_ZCRM {
     }
 
     /**
+     * TEST_ GEt all Modules
+     * 
+     * 
+     * @since 1.0.0
+     */
+    public function get_zcrm_modules( ){
+        $moduleArr = $this->zinst->getAllModules()->getData();
+        $names = [];
+
+        foreach( $moduleArr as $module ){
+            $names[] = $module->getModuleName();
+        }
+
+        return $names;
+    }
+
+    /**
+     * Ajax to call ZCRM with modules info
+     */
+    public function ad_zcrm_get_modules(){
+
+        $results = $this->get_zcrm_modules;
+
+        wp_send_json(array(
+            "success" => true,
+            "message" => json_decode($results)
+        ));
+    }
+
+    /**
 	 * Function to run all admin hooks
 	 * 
 	 * @since 1.0.0
 	 */
 	public function run_all(){
-        
+
+        add_action( 'wp_ajax_ad_zcrm_get_modules', array($this, 'ad_zcrm_get_modules'));
+
 	}
 }
 ?>

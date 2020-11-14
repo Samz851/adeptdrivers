@@ -12,6 +12,8 @@
     <div class="ad-get-agents"></div>
     <button type="button" id="assign-task">Assign Task (To Shan's ID)</button>
     <div class="ad-assign-task"></div>
+    <button type="button" id="ad-get-zcrm">Get Zoho Modules</button>
+    <div class="ad-get-zcrm"></div>
 </div>
 <script>
     $ = jQuery.noConflict();
@@ -21,6 +23,7 @@
         var createBtn = $('#create-task');
         var getAgentsBtn = $('#get-agents');
         var assignTaskBtn = $('#assign-task');
+        var zcrmBtn = $('#assign-task');
         /**
          * Test Get Tookan Key
          */
