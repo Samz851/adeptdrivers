@@ -302,7 +302,8 @@ class Adept_Drivers_ZCRM {
             "currentUserEmail"=> get_option('ad_options')['ad_zcrm_email'],
             'token_persistence_path' => $this->zcrm_token_storage
         );
-        ZCRMRestClient::initialize( $this->configuration );
+        // ZCRMRestClient::initialize( $this->configuration );
+        
         $moduleArr = ZCRMRestClient::getInstance()->getAllModules()->getData();
         $names = [];
 
