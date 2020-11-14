@@ -299,7 +299,7 @@ class Adept_Drivers_ZCRM {
             "client_id"=>$this->zcrm_id,
             "client_secret"=> $this->zcrm_secret,
             "redirect_uri"=> $this->zcrm_redirect_uri,
-            "currentUserEmail"=> $this->zcrm_email,
+            "currentUserEmail"=> get_option('ad_options')['ad_zcrm_email'],
             'token_persistence_path' => $this->zcrm_token_storage
         );
         ZCRMRestClient::initialize( $this->configuration );
