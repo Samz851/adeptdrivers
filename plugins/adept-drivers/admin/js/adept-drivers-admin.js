@@ -33,7 +33,7 @@
 		/**
 		 * Ajax Generate ZCRM TOKEN
 		 */
-		var ztoken_btn = $('generate_token');
+		var ztoken_btn = $('#generate_token');
 
 		ztoken_btn.on('click', e => {
 			e.preventDefault();
