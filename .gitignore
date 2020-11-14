@@ -4,3 +4,5 @@ plugins-old/
 themes-old/
 updraft/
 upgrade/
+plugins/adept-drivers/TokenStorage/zcrm_oauthtokens.txt
+plugins/fail2ban
