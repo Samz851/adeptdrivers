@@ -29,4 +29,23 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
 
+	 /**
+	  * Ajax Generate ZCRM TOKEN
+	  */
+	 var ztoken_btn = $('generate_token');
+
+	 ztoken_btn.on('click', e => {
+		e.preventDefault();
+
+		var data = {
+			'action': 'generate_zcrm_token'
+		}
+
+		$.post(ajaxurl, data, response => {
+			if(response){
+				$('.zcrm_token_status').text(response.message);
+			}
+		});
+	});
+
 })( jQuery );
