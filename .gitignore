@@ -6,3 +6,5 @@ updraft/
 upgrade/
 plugins/adept-drivers/TokenStorage/zcrm_oauthtokens.txt
 plugins/fail2ban
+plugins/adept-drivers/logs/*.log
+
