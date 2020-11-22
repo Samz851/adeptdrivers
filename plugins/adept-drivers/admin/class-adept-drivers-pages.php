@@ -93,6 +93,30 @@ class Adept_Drivers_Pages {
 			]
 		);
 
+		add_settings_field(
+			'ad_moodle_api_token',
+			__( 'LMS API Token', 'adept-drivers'),
+			[$this, 'ad_moodle_api_token_cb'],
+			'ad-api-settings',
+			'ad-api_section_options',
+			[
+				'label_for' => 'ad_moodle_api_token',
+				'class' => 'ad_moodle_api_token'
+			]
+		);
+
+		add_settings_field(
+			'ad_moodle_company_id',
+			__( 'LMS Company ID', 'adept-drivers'),
+			[$this, 'ad_moodle_company_id_cb'],
+			'ad-api-settings',
+			'ad-api_section_options',
+			[
+				'label_for' => 'ad_moodle_company_id',
+				'class' => 'ad_moodle_company_id'
+			]
+			);
+
 		// // register a new section in the "settings" page
 		// add_settings_section(
 		// 	'wpquotes_section_options_recaptcha',
@@ -278,6 +302,40 @@ class Adept_Drivers_Pages {
 		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
 		<button id="generate_token"><?php echo __('Generate Access Tokens', 'adept-drivers'); ?></button>
 		<div class="zcrm_token_status"></div>
+		<?php
+	}
+
+	/**
+	 * Callback for options field
+	 * 
+	 * @since 1.0.0
+	 * 
+	 * @param Array arguements defined in add_settings_field()
+	 */
+	public function ad_moodle_api_token_cb( $args ) {
+		// get the value of the setting we've registered with register_setting()
+		$options = get_option( 'ad_options' );
+		// output the field
+		?>
+		<input type="text" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="ad_options[<?php echo esc_attr( $args['label_for'] ); ?>]" 
+		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
+		<?php
+	}
+
+	/**
+	 * Callback for options field
+	 * 
+	 * @since 1.0.0
+	 * 
+	 * @param Array arguements defined in add_settings_field()
+	 */
+	public function ad_moodle_company_id_cb( $args ) {
+		// get the value of the setting we've registered with register_setting()
+		$options = get_option( 'ad_options' );
+		// output the field
+		?>
+		<input type="text" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="ad_options[<?php echo esc_attr( $args['label_for'] ); ?>]" 
+		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
 		<?php
 	}
 

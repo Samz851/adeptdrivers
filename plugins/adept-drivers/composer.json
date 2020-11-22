@@ -1,5 +1,9 @@
 {
     "require": {
-        "zohocrm/php-sdk": "^2.2"
+        "zohocrm/php-sdk": "^2.2",
+        "llagerlof/moodlerest": "2.3.0"
+    },
+    "autoload": {
+        "classmap": ["logs/adept-drivers-logger.php"]
     }
 }

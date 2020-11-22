@@ -157,6 +157,8 @@ class Adept_Drivers {
 		$ad_zcrm = new Adept_Drivers_ZCRM;
 		require_once plugin_dir_path(__FILE__) . '../admin/class-adept-drivers-pages.php';
 		$plugin_pages = new Adept_Drivers_Pages;
+		require_once plugin_dir_path( __FILE__ ) . '/class-adept-drivers-lms.php';
+		$ad_lms = new Adept_Drivers_LMS;
 		// add_action( 'rest_api_init', array($ad_zcrm, 'zcrm_resapi'));
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
@@ -166,7 +168,7 @@ class Adept_Drivers {
 		$this->loader->add_action( 'woocommerce_product_options_general_product_data', $plugin_admin, 'ad_wc_product_custom_fields');
 		$this->loader->add_action( 'woocommerce_process_product_meta', $plugin_admin, 'ad_wc_product_custom_fields_save');
 		$this->loader->add_action( 'woocommerce_register_form_start', $plugin_admin, 'ad_extra_register_fields');
-		$this->loader->add_action( 'user_register', $plugin_admin, 'inactive_user_registration');
+		// $this->loader->add_action( 'user_register', $plugin_admin, 'inactive_user_registration');
 		$this->loader->add_action( 'woocommerce_payment_complete', $plugin_admin, 'activate_user_after_purchase');
 		$this->loader->add_action( 'woocommerce_order_status_completed', $plugin_admin, 'activate_user_after_purchase');
 		$this->loader->add_filter( 'users_list_table_query_args', $plugin_admin, 'skip_inactive_user_query');

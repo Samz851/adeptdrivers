@@ -14,6 +14,8 @@
     <div class="ad-assign-task"></div>
     <button type="button" id="ad-get-zcrm">Get Zoho Modules</button>
     <div class="ad-get-zcrm"></div>
+    <button type="button" id="ad-create-lms-user">Create LMS User</div>
+    <div class="ad-create-lms-user"></div>
 </div>
 <script>
     $ = jQuery.noConflict();
@@ -24,6 +26,7 @@
         var getAgentsBtn = $('#get-agents');
         var assignTaskBtn = $('#assign-task');
         var zcrmBtn = $('#ad-get-zcrm');
+        var lmsBtn = $('#ad-create-lms-user');
         /**
          * Test Get Tookan Key
          */
@@ -98,9 +101,6 @@
          /**
           * Get Zoho Modules
           */
-            /**
-          * Assign Task to Agent
-          */
           zcrmBtn.on('click', e => {
              e.preventDefault();
             console.log('CLICKEDDDD')
@@ -111,6 +111,24 @@
              $.post(ajaxurl, data, response => {
                 if(response){
                      $('.ad-get-zcrm').append(`<pre>${JSON.stringify(JSON.parse(response.message), null, 2)}</pre>`)
+                     console.log(JSON.parse(response.message));
+                 }
+             })
+         });
+
+        /**
+          * Create LMS user
+          */
+          lmsBtn.on('click', e => {
+             e.preventDefault();
+            console.log('CLICKEDDDD')
+             var data = {
+                 'action' : 'ad_create_lms_user'
+             }
+
+             $.post(ajaxurl, data, response => {
+                if(response){
+                     $('.ad-create-lms-user').append(`<pre>${JSON.stringify(JSON.parse(response.message), null, 2)}</pre>`)
                      console.log(JSON.parse(response.message));
                  }
              })

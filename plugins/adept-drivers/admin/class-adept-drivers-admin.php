@@ -1,15 +1,4 @@
 <?php
-
-/**
- * The admin-specific functionality of the plugin.
- *
- * @link       https://samiscoding.com
- * @since      1.0.0
- *
- * @package    Adept_Drivers
- * @subpackage Adept_Drivers/admin
- */
-
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -126,7 +115,9 @@ class Adept_Drivers_Admin {
 			array()
 		 );
 		add_role( 'student' , __( 'Student', 'adept-drivers' ),
-			get_role( 'customer' )->capabilities
+			array(
+				'read' => true,
+			)
 		);
 	}
 
@@ -253,8 +244,8 @@ class Adept_Drivers_Admin {
                 'value'   => true,
 			),
 			array(
-				'key'     => 'ad_is_active',
-				'compare' => 'NOT EXISTS'
+				'key'     => 'wp_user_level',
+				'value' => 10
 			)
 			
 		  );
@@ -263,19 +254,32 @@ class Adept_Drivers_Admin {
 	  }
 
 	  /**
-	   * Activate users after purchase
+	   * Activate users after purchase and process user record
 	   * 
 	   * @param int $order_id
 	   * @since 1.0.0
 	   */
 	  function activate_user_after_purchase( $order_id ){
 		$order = wc_get_order( $order_id );
-		$user = $order->get_user_id();
-		$order->add_order_note( $user );
+		$userID = $order->get_user_id();
+		$order->add_order_note( $userID );
 		$order->add_order_note(__('This is a test note', 'adept-drivers'));
-		if( $user ){
+		if( $userID ){
+			$user = get_userdata($userID);
+			$pass = wp_generate_password( $length = 12, $include_standard_special_chars = false );
+			$user_data = array(                
+				"username" => $userdata->user_nicename,
+				"password" => $pass,
+				"firstname" => $userdata['first_name'],
+				"lastname" => $userdata['last_name'],
+				"email" => $post_data['studentemail'],
+				"phone1" => $user_address['student_phone'],     
+			);
 
 			update_user_meta( $user, 'ad_is_active', true);
+
+			$LMS = new Adept_Drivers_LMS();
+			$LMS_user = $LMS->create_user($user_data);
 		}
 	  }
 

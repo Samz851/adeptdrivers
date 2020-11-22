@@ -1,0 +1,199 @@
+<?php
+require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
+
+/**
+ * Class for LMS API Handler
+ * 
+ * @package Adept_Drivers
+ * @subpackage Adept_Drivers/includes
+ * @author Samer Alotaibi <sam@samiscoding.com>
+ */
+
+ class Adept_Drivers_LMS {
+
+
+    /**
+     * LMS API KEY
+     */
+    private $token;
+
+    /**
+     * Role IDs
+     */
+    private $roles = array(
+        10 => 'company manager',
+        5 => 'student',
+        7 => 'user',
+        11 => 'company department manager'
+
+    );
+
+    /**
+     * Domain
+     */
+    private $domain = 'https://lms.learndrive.ca';
+
+    /**
+     * Rest Format
+     */
+    private $format = 'json';
+
+    /**
+     * user pass
+     */
+    private $pass;
+
+    /**
+     * company ID
+     */
+    private $company_id;
+
+    /**
+     * Moodle Instance
+     */
+    private $MoodleRest;
+
+    /**
+     * Student Role ID
+     */
+    private $student_role_id = 5;
+
+    /**
+     * Course ID
+     */
+    private $course_id = 5;
+
+    /**
+     * Logger
+     */
+    public $logger;
+    
+    /**
+    * Constructor function
+    * 
+    * @since 1.0.0
+    */
+    public function __construct()
+    {
+        $this->token = get_option('ad_options')['ad_moodle_api_token'];
+        $this->company_id = get_option('ad_options')['ad_moodle_company_id'];
+        $this->logger = new Adept_Drivers_Logger('LMS');
+        $this->run_all();
+    }
+
+    /**
+     * Initiate user in LMS
+     * 
+     * @since 1.0.0
+     * 
+     * @param Array $user
+     * 
+     * @return Array $user | False 
+     */
+    private function initiate_user($user){
+        $function = 'core_user_create_users';
+        $url = $this->domain . '/webservice/rest/server.php'. '?wstoken=' . $this->token . '&wsfunction='.$function . '&moodlewsrestformat=' . $this->format;
+        $user_defaults = array(                
+                "username" => "string",
+                "auth" => "manual",
+                "password" => wp_generate_password(),
+                "firstname" => "string",
+                "lastname" => "string",
+                "email" => "string",
+                "phone1" => "string" 
+        );
+
+        // if($user = ''){
+        //     $user = $user_defaults;
+        // }
+        
+        $user_array = array_merge($user_defaults, $user);
+
+        $params = array('users' => array($user_array));
+        $this->MoodleRest = new MoodleRest($this->domain . '/webservice/rest/server.php', $this->token);
+        $this->MoodleRest->request($function, array('users'=>[$user_array]), MoodleRest::METHOD_POST);
+        $result = $this->MoodleRest->getData();
+        if(isset($result['errorcode'])){
+            wp_mail( get_option( 'admin_email' ), 'LMS-FAILED REGISTRATION', 'Failed to register student ' . $user['firstname'] . ' ' . $user['lastname'] . ' With error message: ' . $result['debuginfo']);
+            $this->logger->Log_Error($result, 'Initiate_user');
+            $this->logger->Log_Error($this->MoodleRest->getUrl(), 'Initiate_user-URL');
+            $result = false;
+        }
+        return $result;
+    }
+
+    /**
+     * Confirm User in LMS
+     * 
+     * @param INT $userID
+     * 
+     * @return Array $user | False
+     */
+    private function create_user($userID = ''){
+
+        $assign_to_company_fn = 'block_iomad_company_admin_assign_users';
+
+        $this->MoodleRest->request($assign_to_company_fin, [$userID, $this->company_id], MoodleRest::METHOD_POST);
+        $result = $this->MoodleRest->getData();
+        if(isset($result['errorcode'])){
+            wp_mail( get_option( 'admin_email' ), 'LMS-FAILED REGISTRATION', 'Failed to register student ' . $user['firstname'] . ' ' . $user['lastname'] . ' With error message: ' . $result['debuginfo']);
+            $this->logger->Log_Error($result['debuginfo'], 'create_user');
+            $result = false;
+        }
+        return $result;
+    }
+
+    /**
+     * enrol user in LMS
+     * 
+     * @param INT $userID;
+     * 
+     * @return Array $user | False
+     */
+    private function enrol_user($userID){
+
+        $enrol_to_course_fn = 'block_iomad_company_admin_enrol_users';
+
+        $this->MoodleRest->request($assign_to_company_fin, [$userID, $this->company_id], MoodleRest::METHOD_POST);
+        $result = $this->MoodleRest->getData();
+        if(isset($result['errorcode'])){
+            wp_mail( get_option( 'admin_email' ), 'LMS-FAILED REGISTRATION', 'Failed to register student ' . $user['firstname'] . ' ' . $user['lastname'] . ' With error message: ' . $result['debuginfo']);
+            $this->logger->Log_Error($result['debuginfo'], 'enrol_user');
+            $result = false;
+        }
+        return $result;        
+    }
+
+    /**
+     * Proccess User
+     * 
+     * @param Array $user
+     * 
+     * @return Bool True | False
+     */
+    public function process_user($user){
+        $this->logger->Log_Information($user, "process_user");
+        // First initiate user in lms
+       $initiate =  $this->initiate_user($user);
+       if($initiate){
+           $create = $this->create_user($initiate[0]['id']);
+
+           if($create){
+               $enrol = $this->enrol_user($initiate[0]['id']);
+
+                if($enrol) return true;
+           }
+       }
+       return false;
+    }
+
+
+    /**
+     * Function to run all admin hooks
+     * 
+     * @since 1.0.0
+     */
+    public function run_all(){
+        // add_action( 'wp_ajax_ad_create_lms_user', array($this, 'create_user'));
+    }
+ }

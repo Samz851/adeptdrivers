@@ -104,9 +104,6 @@ class Adept_Drivers_ZCRM {
      * @return void
      */
     public function handle_zcrm_notifications( $request ){
-        
-        // $DOCUMENT_ROOT = $_SERVER['DOCUMENT_ROOT'];
-        // $filename= $DOCUMENT_ROOT. '/wp-content/plugins/READTHIS.json';
 
         /** 
          * The post data fetched raw
@@ -121,7 +118,7 @@ class Adept_Drivers_ZCRM {
             /**
              * Generate password
              */
-            $pass = wp_generate_password( $length = 12, $include_standard_special_chars = false );
+            $pass = wp_generate_password( $length = 12, $include_standard_special_chars = true );
 
             /**
              * Prep userdata
@@ -131,10 +128,10 @@ class Adept_Drivers_ZCRM {
                 'user_login'            => explode('@',$post_data['studentemail'])[0],   //(string) The user's login username.
                 'user_nicename'         => str_replace('.','_',explode('@',$post_data['studentemail'])[0]),   //(string) The URL-friendly user name.
                 'user_email'            => $post_data['studentemail'],   //(string) The user email address.
-                'display_name'          => $post_data['studentname'],   //(string) The user's display name. Default is the user's username.
-                'first_name'            => explode(' ', $post_data['studentname'])[0],   //(string) The user's first name. For new users, will be used to build the first part of the user's display name if $display_name is not specified.
-                'last_name'             => explode(' ', $post_data['studentname'])[1],   //(string) The user's last name. For new users, will be used to build the second part of the user's display name if $display_name is not specified.
-                'user_registered'       => $post_data['studentregistration'],   //(string) Date the user registered. Format is 'Y-m-d H:i:s'.
+                'display_name'          => $post_data['student_name'],   //(string) The user's display name. Default is the user's username.
+                'first_name'            => explode(' ', $post_data['student_name'])[0],   //(string) The user's first name. For new users, will be used to build the first part of the user's display name if $display_name is not specified.
+                'last_name'             => explode(' ', $post_data['student_name'])[1],   //(string) The user's last name. For new users, will be used to build the second part of the user's display name if $display_name is not specified.
+                'user_registered'       => $post_data['student_registration'],   //(string) Date the user registered. Format is 'Y-m-d H:i:s'.
                 'show_admin_bar_front'  => 'false',   //(string|bool) Whether to display the Admin Bar for the user on the site's front end. Default true.
                 'role'                  => 'student',   //(string) User's role.
              
@@ -143,7 +140,7 @@ class Adept_Drivers_ZCRM {
             /**
              * Holds core data from zcrm
              */
-            $zcrm_core = ['studentemail', 'studentname', 'studentregistration'];
+            $zcrm_core = ['studentemail', 'student_name', 'student_registration'];
 
             /**
              * create new user
@@ -159,7 +156,7 @@ class Adept_Drivers_ZCRM {
                 $user_address = array(
                     'student_address_1' => 'billing_address_1',
                     'student_city' => 'billing_city',
-                    'studentpostal' => 'billing_postcode',
+                    'student_postal' => 'billing_postcode',
                     'student_state' => 'billing_state',
                     'student_phone' => 'billing_phone'
                 );
@@ -167,7 +164,6 @@ class Adept_Drivers_ZCRM {
                 /**
                  * Add user meta -- only if not core
                  */
-
                  foreach ( $post_data as $key=>$value ){
                      if(!in_array($key, $zcrm_core)){
                          if(array_key_exists($key, $user_address)){
@@ -178,6 +174,44 @@ class Adept_Drivers_ZCRM {
                      }
                  }
                  add_user_meta( $new_user, 'ad_is_active', true, true);
+
+                 /**
+                  * Prep user for LMS activation
+                  */
+                  $user = array(                
+                    "username" => $userdata['user_nicename'],
+                    "password" => $pass,
+                    "firstname" => $userdata['first_name'],
+                    "lastname" => $userdata['last_name'],
+                    "email" => $post_data['studentemail'],
+                    "phone1" => $user_address['student_phone'],     
+                );
+                $f = fopen( $filename, 'a');
+                $date = new DateTime();
+                fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' user array: ' . $proccessed . PHP_EOL);
+                fclose($f);
+                
+
+                /**
+                 * Signup new user into LMS
+                 */
+                $LMS = new Adept_Drivers_LMS();
+                $proccessed = $LMS->process_user($user);
+
+                //Log
+                // if (!file_exists(plugin_dir_path( __DIR__ ) . '/logs')) {
+                //     mkdir(plugin_dir_path( __DIR__ ) . '/logs', 0777, true);
+                // }
+                $f = fopen( $filename, 'a');
+                $date = new DateTime();
+                fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' RESULT: ' . $proccessed . PHP_EOL);
+                fclose($f);
+                
+            }else{
+                $f = fopen( $filename, 'a');
+                $date = new DateTime();
+                fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($new_user) . ' Type: Failed Insert.' . PHP_EOL);
+                fclose($f);
             }
         };
 
@@ -303,16 +337,25 @@ class Adept_Drivers_ZCRM {
      * 
      * @since 1.0.0
      */
-    public function get_zcrm_modules( ){
-
-        $moduleArr = ZCRMRestClient::getInstance()->getAllModules()->getData();
-        $names = [];
-
-        foreach( $moduleArr as $module ){
-            $names[] = $module->getModuleName();
-        }
-
-        return $names;
+    public function get_zcrm_api_test( ){
+        $result = '';
+        try{
+        $restIns=ZCRMRestClient::getInstance();
+          $res=$restIns->getOrganizationDetails();
+          $orgIns=$res->getData();
+          $result .= $orgIns->getCompanyName();
+          $result .= $orgIns->getOrgId();
+          $result .= $orgIns->getCountryCode();
+          $result .= $orgIns->getCountry();
+          }
+          catch (ZCRMException $e)
+          {
+            $result .= $e->getCode();
+            $result .= $e->getExceptionDetails();
+            $result .= $e->getMessage();
+            $result .= $e->getTraceAsString();
+          }
+          return $result;
     }
 
     /**
@@ -320,7 +363,7 @@ class Adept_Drivers_ZCRM {
      */
     public function ad_zcrm_get_modules(){
 
-        $results = $this->get_zcrm_modules();
+        $results = $this->get_zcrm_api_test();
 
         wp_send_json(array(
             "success" => true,

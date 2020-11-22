@@ -6,4 +6,6 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Adept_Drivers_Logger' => $baseDir . '/logs/adept-drivers-logger.php',
+    'MoodleRest' => $vendorDir . '/llagerlof/moodlerest/MoodleRest.php',
 );
