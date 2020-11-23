@@ -118,7 +118,7 @@ class Adept_Drivers_ZCRM {
             /**
              * Generate password
              */
-            $pass = wp_generate_password( $length = 12, $include_standard_special_chars = true );
+            $pass = wp_generate_password( 12, true );
 
             /**
              * Prep userdata
@@ -175,6 +175,10 @@ class Adept_Drivers_ZCRM {
                  }
                  add_user_meta( $new_user, 'ad_is_active', true, true);
 
+                 //Associate User to Instructor
+                 $TOKAAN = new Adept_Drivers_Tookan();
+                //  $TOKAAN->add_customer(array('name' => $post_data['student_name'], 'phone' => $post_data['student_phone'], 'email' => $post_data['studentemail'], ))
+
                  /**
                   * Prep user for LMS activation
                   */
@@ -186,10 +190,10 @@ class Adept_Drivers_ZCRM {
                     "email" => $post_data['studentemail'],
                     "phone1" => $user_address['student_phone'],     
                 );
-                $f = fopen( $filename, 'a');
-                $date = new DateTime();
-                fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' user array: ' . $proccessed . PHP_EOL);
-                fclose($f);
+                // $f = fopen( $filename, 'a');
+                // $date = new DateTime();
+                // fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' user array: ' . $proccessed . PHP_EOL);
+                // fclose($f);
                 
 
                 /**
@@ -202,16 +206,16 @@ class Adept_Drivers_ZCRM {
                 // if (!file_exists(plugin_dir_path( __DIR__ ) . '/logs')) {
                 //     mkdir(plugin_dir_path( __DIR__ ) . '/logs', 0777, true);
                 // }
-                $f = fopen( $filename, 'a');
-                $date = new DateTime();
-                fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' RESULT: ' . $proccessed . PHP_EOL);
-                fclose($f);
+                // $f = fopen( $filename, 'a');
+                // $date = new DateTime();
+                // fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' RESULT: ' . $proccessed . PHP_EOL);
+                // fclose($f);
                 
             }else{
-                $f = fopen( $filename, 'a');
-                $date = new DateTime();
-                fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($new_user) . ' Type: Failed Insert.' . PHP_EOL);
-                fclose($f);
+                // $f = fopen( $filename, 'a');
+                // $date = new DateTime();
+                // fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($new_user) . ' Type: Failed Insert.' . PHP_EOL);
+                // fclose($f);
             }
         };
 

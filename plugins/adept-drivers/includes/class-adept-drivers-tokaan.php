@@ -1,4 +1,6 @@
 <?php
+require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
+
 /**
  * Class for Tookan API Handler
  * 
@@ -17,6 +19,12 @@ class Adept_Drivers_Tookan
      * @var string
      */
     protected $api_key;
+
+    /**
+     * Loger
+     * 
+     */
+    public $logger;
 
     /**
      * All possible response codes
@@ -73,6 +81,7 @@ class Adept_Drivers_Tookan
     {
         $this->run_all();
         $this->api_key = get_option('ad_options')['ad_tookan_api'];
+        $this->logger = new Adept_Drivers_Logger('TOOKAN');
     }
 
     /**
@@ -207,6 +216,42 @@ class Adept_Drivers_Tookan
             'fleet_id'=> $agentID,
             'team_id'=> $teamID,
             'job_status'=> 6
+        );
+
+        $response = wp_remote_post( $url, array(
+            'method'      => 'POST',
+            'timeout'     => 45,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array('Content-Type'=> 'application/json'),
+            'body'        => json_encode($body),
+            'cookies'     => array()
+            )
+        );
+        if ( is_wp_error( $response ) ) {
+            $this->logger->Log_Error($response, 'TOOKAN-ERROR');
+        } else {
+            $this->logger->Log_Information($response, 'TOOKAN-INFO');
+        }
+    }
+
+    /**
+     * Get Agents near customer
+     * 
+     * @since 1.0.0
+     * 
+     * @param INT $customer_id
+     * 
+     * @return Array agents
+     */
+    public function get_agents_near_customer( $customer_id ){
+        $url = $this->api_url . 'get_fleets_near_customer';
+
+        $body = array(
+            'api_key'=> $this->api_key,
+            'customer_id'=> 28598175,
+            'radius_in_metres'=> 10000
         );
 
         $response = wp_remote_post( $url, array(

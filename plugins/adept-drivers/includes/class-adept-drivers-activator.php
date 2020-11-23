@@ -30,9 +30,24 @@ class Adept_Drivers_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
-		// require_once plugin_dir_path( __FILE__  ) . '../includes/class-adept-drivers-zcrm.php';
-		// $ad_zcrm = new Adept_Drivers_ZCRM;
-		// add_action( 'rest_api_init', array($ad_zcrm, 'zcrm_resapi'));
+		global $wpdb;
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		$charset_collate = $wpdb->get_charset_collate();
+		$table_name = $wpdb->prefix . 'ad_bookings';
+		// $sql = "DROP TABLE IF EXISTS $table_name";
+		// dbDelta( $sql );
+
+		$sql = "CREATE TABLE $table_name (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			student_id mediumint(9) NOT NULL,
+			tookan_id mediumint(12) NOT NULL,
+			time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+			booking_date datetime NULL,
+			instructor smallint(64) NULL,
+			status BOOLEAN,
+			PRIMARY KEY (student_id)
+		) $charset_collate;";
+			dbDelta( $sql );
 	}
 
 }
