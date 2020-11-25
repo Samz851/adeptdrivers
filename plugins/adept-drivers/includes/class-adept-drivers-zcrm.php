@@ -59,6 +59,11 @@ class Adept_Drivers_ZCRM {
     private $zcrm_token_storage;
 
     /**
+     * Logger instance
+     */
+    public $logger;
+
+    /**
      * Constructor function
      * 
      * @since 1.0.0
@@ -83,6 +88,7 @@ class Adept_Drivers_ZCRM {
         );
         ZCRMRestClient::initialize( $this->configuration );
         $this->generate_token_from_refresh();
+        $this->logger = new Adept_Drivers_Logger('ZCRM');
 
     }
 
@@ -104,7 +110,7 @@ class Adept_Drivers_ZCRM {
      * @return void
      */
     public function handle_zcrm_notifications( $request ){
-
+        global $wpdb;
         /** 
          * The post data fetched raw
          */
@@ -161,6 +167,8 @@ class Adept_Drivers_ZCRM {
                     'student_phone' => 'billing_phone'
                 );
 
+                $add_string = $post_data['student_address_1'] . ', ' . $post_data['student_city'] . ' ' . $post_data['student_postal'] . ', ' . $post_data['student_state'];
+
                 /**
                  * Add user meta -- only if not core
                  */
@@ -177,8 +185,20 @@ class Adept_Drivers_ZCRM {
 
                  //Associate User to Instructor
                  $TOKAAN = new Adept_Drivers_Tookan();
-                //  $TOKAAN->add_customer(array('name' => $post_data['student_name'], 'phone' => $post_data['student_phone'], 'email' => $post_data['studentemail'], ))
+                 $customer = $TOKAAN->add_customer(array('name' => $post_data['student_name'], 'phone' => $post_data['student_phone'], 'email' => $post_data['studentemail'], 'address' => $add_string));
+                 $this->logger->Log_Information($customer, 'Saving student tookan ID');
+                 $this->logger->Log_Type($customer, "Saving student tookan ID");
+                 
+                 if($customer['data']['customer_id']){
+                     add_user_meta( $new_user, 'ad_student_tookan_id', $customer['data']['customer_id'], true);
 
+                     // Get agents near this customer
+                     $agent = $TOKAAN->get_agents_near_customer( $customer['data']['customer_id'] );
+                     if($agent){
+                         $agentID = [$agent[0]['fleet_id']];
+                         add_user_meta( $new_user, 'ad_student_instructor', $agentID, true);
+                     }
+                 }
                  /**
                   * Prep user for LMS activation
                   */
@@ -194,7 +214,6 @@ class Adept_Drivers_ZCRM {
                 // $date = new DateTime();
                 // fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' user array: ' . $proccessed . PHP_EOL);
                 // fclose($f);
-                
 
                 /**
                  * Signup new user into LMS

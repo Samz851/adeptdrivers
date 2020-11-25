@@ -245,13 +245,13 @@ class Adept_Drivers_Tookan
      * 
      * @return Array agents
      */
-    public function get_agents_near_customer( $customer_id ){
+    public function get_agents_near_customer( $customer_id = '' ){
         $url = $this->api_url . 'get_fleets_near_customer';
 
         $body = array(
             'api_key'=> $this->api_key,
-            'customer_id'=> 28598175,
-            'radius_in_metres'=> 10000
+            'customer_id'=> empty($customer_id) ? 28598175 : $customer_id,
+            'radius_in_metres'=> 50000
         );
 
         $response = wp_remote_post( $url, array(
@@ -265,18 +265,68 @@ class Adept_Drivers_Tookan
             'cookies'     => array()
             )
         );
-        if ( is_wp_error( $response ) ) {
-            wp_send_json(array(
-                "success" => false,
-                "message" => $response->get_error_message()
-            ), 400);
+
+
+        if ( is_wp_error( $response ) || empty($response['body']['data'])) {
+            $this->logger->Log_Error($response['body'], 'Agnet by proximity');
+            return false;
         } else {
-            wp_send_json(array(
-                "success" => true,
-                "message" => $response['body'],
-                'key' => $this->api_key,
-                'body' => $body
-            ));
+            // wp_send_json(array(
+            //     "success" => true,
+            //     "message" => $response['body']
+            // ));
+            $this->logger->Log_Information($response['body']['data'], 'Agent by promixity');
+
+            return json_decode($response['body']['data']);
+        }
+    }
+
+    /**
+     * Add Student as a customer
+     * 
+     * @since 1.0.0
+     * 
+     * @param Array $customer
+     * 
+     * @return mix customer ID | false
+     */
+    public function add_customer( $customer ){
+        $url = $this->api_url . 'customer/add';
+
+        $body = array(
+            'api_key'=> $this->api_key,
+            'user_type'=> 0,
+            'name'=> $customer['name'],
+            'phone' => $customer['phone'],
+            'email' => $customer['email'],
+            'address' => $customer['address']
+        );
+
+        $response = wp_remote_post( $url, array(
+            'method'      => 'POST',
+            'timeout'     => 45,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array('Content-Type'=> 'application/json'),
+            'body'        => json_encode($body),
+            'cookies'     => array()
+            )
+        );
+
+
+        if ( is_wp_error( $response ) ) {
+            $this->logger->Log_Error($response['body'], 'Adding Customer');
+            return false;
+        } else {
+            // wp_send_json(array(
+            //     "success" => true,
+            //     "message" => $response['body']
+            // ));
+            $this->logger->Log_Information($response['body'], 'Adding Customer');
+            $this->logger->Log_Type(json_encode($response['body']), 'Adding Customer');
+
+            return json_decode($response['body'], true);
         }
     }
 

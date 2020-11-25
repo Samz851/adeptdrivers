@@ -52,4 +52,11 @@
         fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- INFO --- ' . json_encode($message) . ' Type: ' . $type . PHP_EOL);
         fclose($f);
       }
+
+      public function Log_Type($obj, $type){
+        $f = fopen( $this->logs_path, 'a');
+        $date = new DateTime();
+        fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- TYPE --- ' . gettype($obj) . ' Type: ' . $type . PHP_EOL);
+        fclose($f);
+      }
  }

@@ -253,13 +253,13 @@ class Adept_Drivers_Admin {
 		  return $args;
 	  }
 
-	  /**
-	   * Activate users after purchase and process user record
-	   * 
-	   * @param int $order_id
-	   * @since 1.0.0
-	   */
-	  function activate_user_after_purchase( $order_id ){
+	/**
+	 * Activate users after purchase and process user record
+	 * 
+	 * @param int $order_id
+	 * @since 1.0.0
+	 */
+	function activate_user_after_purchase( $order_id ){
 		$order = wc_get_order( $order_id );
 		$userID = $order->get_user_id();
 		$order->add_order_note( $userID );
@@ -281,7 +281,34 @@ class Adept_Drivers_Admin {
 			$LMS = new Adept_Drivers_LMS();
 			$LMS_user = $LMS->create_user($user_data);
 		}
-	  }
+	}
+
+	/**
+	 * Add Endpoint for User Dashboard
+	 * 
+	 */
+	function ad_booking_endpoint() {
+		add_rewrite_endpoint( 'lessons-booking', EP_ROOT | EP_PAGES );
+	}
+	
+	/**
+	 * Add endpoint to Dashboard menue
+	 * 
+	 * @param Array $items menu items
+	 * 
+	 * @return Array $items
+	 */
+	function ad_booking_menu_items( $items ) {
+		$items[ 'lessons-booking' ] = __( 'Booking', 'adept-drivers' );
+		return $items;
+	}
+
+	function ad_booking_query_vars( $vars ) {
+		$vars[] = 'lessons-booking';
+	
+		return $vars;
+	}
+	
 
 	/**
 	 * Function to run all admin hooks

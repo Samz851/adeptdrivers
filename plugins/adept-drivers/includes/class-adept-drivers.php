@@ -159,7 +159,12 @@ class Adept_Drivers {
 		$plugin_pages = new Adept_Drivers_Pages;
 		require_once plugin_dir_path( __FILE__ ) . '/class-adept-drivers-lms.php';
 		$ad_lms = new Adept_Drivers_LMS;
+		$booking = 'booking';
 		// add_action( 'rest_api_init', array($ad_zcrm, 'zcrm_resapi'));
+		$this->loader->add_action( 'init', $plugin_admin, 'ad_booking_endpoint');
+		$this->loader->add_filter( 'woocommerce_account_menu_items', $plugin_admin, 'ad_booking_menu_items');
+		$this->loader->add_filter( 'query_vars', $plugin_admin, 'ad_booking_query_vars');
+		$this->loader->add_action( 'woocommerce_account_' . $booking. '_endpoint', $plugin_admin, 'booking_page_cb');
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action( 'rest_api_init', $ad_zcrm, 'zcrm_resapi');
@@ -190,6 +195,8 @@ class Adept_Drivers {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 		$this->loader->add_filter( 'woocommerce_locate_template', $plugin_public, 'ad_override_wc_template', 1, 3);
 		$this->loader->add_action( 'template_redirect', $plugin_public, 'ad_redirect_pre_checkout');
+		// $this->loader->add_action( 'woocommerce_account_booking_endpoint', $plugin_public, 'booking_page_cb');
+
 	}
 
 	/**

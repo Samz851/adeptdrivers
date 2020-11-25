@@ -41,7 +41,6 @@ class Adept_Drivers_Activator {
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			student_id mediumint(9) NOT NULL,
 			tookan_id mediumint(12) NOT NULL,
-			time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 			booking_date datetime NULL,
 			instructor smallint(64) NULL,
 			status BOOLEAN,

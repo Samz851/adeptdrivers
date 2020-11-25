@@ -128,23 +128,33 @@ class Adept_Drivers_Public {
 	   $template = $_template;
    
 	  return $template;
-	   }
+	}
 	   
-	   /**
-		* Redirect user to register/login before checkout
-		*
-		*@since 1.0.0
-		*/
-		function ad_redirect_pre_checkout() {
-			if ( ! function_exists( 'wc' ) ) return;
-			$redirect_page_id = url_to_postid('checkout/login-register');
-			if ( ! is_user_logged_in() && is_checkout() ) {
-				wp_safe_redirect( get_permalink( $redirect_page_id ) );
-				die;
-			} elseif ( is_user_logged_in() && is_page( $redirect_page_id ) ) {
-				wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
-				die;
-			}
+	/**
+	* Redirect user to register/login before checkout
+	*
+	*@since 1.0.0
+	*/
+	function ad_redirect_pre_checkout() {
+		if ( ! function_exists( 'wc' ) ) return;
+		$redirect_page_id = url_to_postid('checkout/login-register');
+		if ( ! is_user_logged_in() && is_checkout() ) {
+			wp_safe_redirect( get_permalink( $redirect_page_id ) );
+			die;
+		} elseif ( is_user_logged_in() && is_page( $redirect_page_id ) ) {
+			wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
+			die;
 		}
+	}
+
+	/**
+	 * Callback for Booking Dashboard page
+	 * 
+	 * @since 1.0.0
+	 */
+	function booking_page_cb(){
+		//:: TODO Render page
+		echo 'This is booking page';
+	}
 
 }
