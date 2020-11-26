@@ -1,5 +1,5 @@
 <?php
-
+require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
 /**
  * The public-facing functionality of the plugin.
  *
@@ -41,6 +41,15 @@ class Adept_Drivers_Public {
 	private $version;
 
 	/**
+	 * Template engine instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      string    $version    The current version of this plugin.
+	 */
+	private $Mustache;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -51,6 +60,10 @@ class Adept_Drivers_Public {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+		$this->Mustache = new Mustache_Engine(array(
+													'entity_flags' => ENT_QUOTES,
+													'loader' => new Mustache_Loader_FilesystemLoader(dirname(__FILE__).'/templates')
+												));
 
 	}
 
@@ -141,10 +154,7 @@ class Adept_Drivers_Public {
 		if ( ! is_user_logged_in() && is_checkout() ) {
 			wp_safe_redirect( get_permalink( $redirect_page_id ) );
 			die;
-		} elseif ( is_user_logged_in() && is_page( $redirect_page_id ) ) {
-			wp_safe_redirect( get_permalink( wc_get_page_id( 'checkout' ) ) );
-			die;
-		}
+		} 
 	}
 
 	/**
@@ -154,7 +164,10 @@ class Adept_Drivers_Public {
 	 */
 	function booking_page_cb(){
 		//:: TODO Render page
-		echo 'This is booking page';
+		$tpl = $this->Mustache->loadTemplate('lessons-booking');
+		echo $tpl->render(array(
+			'msg' => __('This is the bookings page', 'adept-drivers')
+		));
 	}
 
 }

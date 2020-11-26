@@ -303,6 +303,13 @@ class Adept_Drivers_Admin {
 		return $items;
 	}
 
+	/**
+	 * Add the endpoint to the quary variables
+	 * 
+	 * @param Array $vars
+	 * 
+	 * @return Array $items
+	 */
 	function ad_booking_query_vars( $vars ) {
 		$vars[] = 'lessons-booking';
 	

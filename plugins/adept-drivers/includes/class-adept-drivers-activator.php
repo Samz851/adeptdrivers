@@ -36,7 +36,7 @@ class Adept_Drivers_Activator {
 		$table_name = $wpdb->prefix . 'ad_bookings';
 		// $sql = "DROP TABLE IF EXISTS $table_name";
 		// dbDelta( $sql );
-
+		$foreign_table = $wpdb->prefix . 'users';
 		$sql = "CREATE TABLE $table_name (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			student_id mediumint(9) NOT NULL,
@@ -44,9 +44,11 @@ class Adept_Drivers_Activator {
 			booking_date datetime NULL,
 			instructor smallint(64) NULL,
 			status BOOLEAN,
-			PRIMARY KEY (student_id)
+			PRIMARY KEY (id),
+			FOREIGN KEY (student_id) REFERENCES $foreign_table(ID)
 		) $charset_collate;";
 			dbDelta( $sql );
+
 	}
 
 }

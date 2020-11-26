@@ -20,6 +20,16 @@ class ComposerStaticInitd49fdb7904759da37bb4f59975132b20
         ),
     );
 
+    public static $prefixesPsr0 = array (
+        'M' => 
+        array (
+            'Mustache' => 
+            array (
+                0 => __DIR__ . '/..' . '/mustache/mustache/src',
+            ),
+        ),
+    );
+
     public static $classMap = array (
         'Adept_Drivers_Logger' => __DIR__ . '/../..' . '/logs/adept-drivers-logger.php',
         'MoodleRest' => __DIR__ . '/..' . '/llagerlof/moodlerest/MoodleRest.php',
@@ -30,6 +40,7 @@ class ComposerStaticInitd49fdb7904759da37bb4f59975132b20
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInitd49fdb7904759da37bb4f59975132b20::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInitd49fdb7904759da37bb4f59975132b20::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitd49fdb7904759da37bb4f59975132b20::$prefixesPsr0;
             $loader->classMap = ComposerStaticInitd49fdb7904759da37bb4f59975132b20::$classMap;
 
         }, null, ClassLoader::class);
