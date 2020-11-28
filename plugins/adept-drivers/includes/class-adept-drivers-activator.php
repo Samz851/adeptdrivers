@@ -39,13 +39,12 @@ class Adept_Drivers_Activator {
 		$foreign_table = $wpdb->prefix . 'users';
 		$sql = "CREATE TABLE $table_name (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
-			student_id mediumint(9) NOT NULL,
+			student_id 	bigint(20) NOT NULL,
 			tookan_id mediumint(12) NOT NULL,
 			booking_date datetime NULL,
 			instructor smallint(64) NULL,
 			status BOOLEAN,
-			PRIMARY KEY (id),
-			FOREIGN KEY (student_id) REFERENCES $foreign_table(ID)
+			PRIMARY KEY (id)
 		) $charset_collate;";
 			dbDelta( $sql );
 

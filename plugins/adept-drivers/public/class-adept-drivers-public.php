@@ -87,7 +87,9 @@ class Adept_Drivers_Public {
 		 */
 
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/adept-drivers-public.css', array(), $this->version, 'all' );
-
+		if (is_page('user-account')) {
+			wp_enqueue_style('adept-drivers-calendar-css' , plugin_dir_url( __FILE__ ) . 'css/adept-drivers-calendar.css', array(), $this->version, 'all');
+		}
 	}
 
 	/**
@@ -109,7 +111,11 @@ class Adept_Drivers_Public {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/adept-drivers-public.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_scripts( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/adept-drivers-public.js', array( 'jquery' ), $this->version, false );
+		if (is_page('user-account')) {
+			wp_enqueue_script('momentsjs' , plugin_dir_url( __FILE__ ) . 'js/lib/moments.js', array( '' ), $this->version, true);
+			wp_enqueue_script('adept-drivers-calendar-js' , plugin_dir_url( __FILE__ ) . 'js/adept-drivers-calendar.js', array(''), $this->version, true);
+		}
 
 	}
 
@@ -166,7 +172,8 @@ class Adept_Drivers_Public {
 		//:: TODO Render page
 		$tpl = $this->Mustache->loadTemplate('lessons-booking');
 		echo $tpl->render(array(
-			'msg' => __('This is the bookings page', 'adept-drivers')
+			'emptyBookings' => true,
+			'bookings' => false
 		));
 	}
 

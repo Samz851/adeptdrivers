@@ -1,7 +1,30 @@
 <div class="ad-booking-page">
     <div class="ad-booking-wrapper">
         <div class="ad-booking-content">
-            {{ msg }}
+            {{# bookings}}
+                <table>
+                    <thead>
+                        <td>{{ headerDate }}</td>
+                        <td>{{ headerStatus }}</td>
+                    </thead>
+                    <tbody>
+                        {{#bookingData }}
+                            <tr>
+                                <td>{{ date }} </td>
+                                <td> {{ status }}</td>
+                            </tr>
+                        {{/bookingData}}
+                    </tbody>
+                </table>
+            {{/ bookings}}
+            {{^bookings}}
+                <h1>NO BOOKINGS</h1>
+            {{/bookings}}
+            <div>
+            </div>
+        </div>
+        <div class="ad-booking-calendar">
+            <div id="calendar"></div>
         </div>
     </div>
 </div>
