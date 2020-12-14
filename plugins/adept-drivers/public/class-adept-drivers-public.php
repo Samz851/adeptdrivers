@@ -163,7 +163,8 @@ class Adept_Drivers_Public {
 		if ( ! function_exists( 'wc' ) ) return;
 		$redirect_page_id = url_to_postid('checkout/login-register');
 		if ( ! is_user_logged_in() && is_checkout() ) {
-			wp_safe_redirect( get_permalink( $redirect_page_id ) );
+			$_SESSION['redirected_customer'] = true;
+			wp_safe_redirect( get_permalink( $redirect_page_id ) . '?action=register_user' );
 			die;
 		} 
 	}
