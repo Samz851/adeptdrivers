@@ -1,4 +1,6 @@
 <?php
+require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
+
 class Adept_Drivers_Pages {
 
     /**
@@ -116,6 +118,18 @@ class Adept_Drivers_Pages {
 				'class' => 'ad_moodle_company_id'
 			]
 			);
+		
+		add_settings_field(
+			'ad_google_api_key',
+			__( 'Google Geocoding API', 'adept-drivers'),
+			[$this, 'ad_google_api_key_cb'],
+			'ad-api-settings',
+			'ad-api_section_options',
+			[
+				'label_for' => 'ad_google_api_key',
+				'class' => 'ad_google_api_key'
+			]
+		);
 
 		// // register a new section in the "settings" page
 		// add_settings_section(
@@ -339,6 +353,23 @@ class Adept_Drivers_Pages {
 		<?php
 	}
 
+	/**
+	 * Callback for options field
+	 * 
+	 * @since 1.0.0
+	 * 
+	 * @param Array arguements defined in add_settings_field()
+	 */
+	public function ad_google_api_key_cb( $args ) {
+		// get the value of the setting we've registered with register_setting()
+		$options = get_option( 'ad_options' );
+		// output the field
+		?>
+		<input type="text" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="ad_options[<?php echo esc_attr( $args['label_for'] ); ?>]" 
+		value="<?php echo isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '' ; ?>" />
+		<?php
+	}
+
     /**
 	 * Register the admin menu page
 	 * 
@@ -346,9 +377,9 @@ class Adept_Drivers_Pages {
 	 */
 	public function add_admin_menu() {
 		$hook =  add_menu_page( __('Adept Drivers', 'adept-drivers'), __('Adept Drivers', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin', [$this, 'plugin_main_page'], plugin_dir_url( __FILE__ ) . '/img/steering-wheel.svg' );
-        add_submenu_page( 'adept-drivers-plugin', __('Instructors', 'adept-drivers'), __('Instructors', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-instructors', [$this, 'plugin_settings_page'] );
-        add_submenu_page( 'adept-drivers-plugin', __('Bookings', 'adept-drivers'), __('Bookings', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-bookings', [$this, 'plugin_settings_page'] );
-        add_submenu_page( 'adept-drivers-plugin', __('Students', 'adept-drivers'), __('Students', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-students', [$this, 'plugin_settings_page'] );
+        add_submenu_page( 'adept-drivers-plugin', __('Instructors', 'adept-drivers'), __('Instructors', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-instructors', [new Adept_Drivers_Instructors, 'render_page'] );
+        add_submenu_page( 'adept-drivers-plugin', __('Bookings', 'adept-drivers'), __('Bookings', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-bookings', [new Adept_Drivers_Public_Booking, 'render_page'] );
+        add_submenu_page( 'adept-drivers-plugin', __('Students', 'adept-drivers'), __('Students', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-students', [new Adept_Drivers_Students, 'render_students_page'] );
         add_submenu_page( 'adept-drivers-plugin', __('Settings', 'adept-drivers'), __('Settings', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-settings', [$this, 'plugin_settings_page'] );
         add_submenu_page( 'adept-drivers-plugin', __('Tests', 'adept-drivers'), __('Tests', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-test', [$this, 'plugin_tests_page'] );
 

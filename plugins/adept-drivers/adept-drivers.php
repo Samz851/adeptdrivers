@@ -1,4 +1,6 @@
 <?php
+require plugin_dir_path( __FILE__ ) . '/vendor/autoload.php';
+
 /**
  * The plugin bootstrap file
  *
@@ -34,14 +36,19 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'ADEPT_DRIVERS_VERSION', '1.0.0' );
+define( 'ADEPT_DRIVERS_VERSION', '1.0.1' );
+
+/**
+ * Database table for the plugin
+ * 
+ */
+define('ADEPT_DRIVERS_DBTABLE', 'ad_bookings');
 
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-adept-drivers-activator.php
  */
 function activate_adept_drivers() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-adept-drivers-activator.php';
 	Adept_Drivers_Activator::activate();
 }
 
@@ -50,7 +57,6 @@ function activate_adept_drivers() {
  * This action is documented in includes/class-adept-drivers-deactivator.php
  */
 function deactivate_adept_drivers() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-adept-drivers-deactivator.php';
 	Adept_Drivers_Deactivator::deactivate();
 }
 
@@ -61,7 +67,6 @@ register_deactivation_hook( __FILE__, 'deactivate_adept_drivers' );
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
-require plugin_dir_path( __FILE__ ) . 'includes/class-adept-drivers.php';
 
 /**
  * Begins execution of the plugin.

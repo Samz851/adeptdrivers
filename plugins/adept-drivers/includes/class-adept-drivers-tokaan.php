@@ -100,36 +100,33 @@ class Adept_Drivers_Tookan
      * @since 1.0.0
      * 
      */
-    public function create_task(){
+    public function create_task($user, $datetime, $agents){
         $url = $this->api_url . 'create_task';
+        $add_string = get_user_meta( $user->ID, 'billing_address_1', true ) . ', ' . get_user_meta( $user->ID, 'billing_city', true ) . ' ' . get_user_meta( $user->ID, 'billing_postcode', true ) . ', ' . get_user_meta( $user->ID, 'billing_state', true ) . ' Canada';
         $body = array(
-            'customer_email'=> 'john@example.com',
-            'order_id'=> '654321',
-            'customer_username'=> 'John Doe',
-            'customer_phone'=> '+919999999999',
-            'customer_address'=> 'Powai Lake, Powai, Mumbai, Maharashtra, India',
-            'latitude'=> '28.5494489',
-            'longitude'=> '77.2001368',
-            'job_description'=> 'Beauty services',
-            'job_pickup_datetime'=> '2020-11-28 12:15:00',
-            'job_delivery_datetime'=> '2020-11-28 12:15:00',
+            'customer_email' => $user->email,
+            'customer_username' => $user->display_name,
+            'customer_phone' => get_user_meta( $user->ID, 'billing_phone', true ),
+            'customer_address'=> $add_string,
+            'job_description'=> 'Lesson',
+            'job_pickup_datetime'=> $datetime,
+            'job_delivery_datetime'=> $datetime,
             'has_pickup'=> '0',
             'has_delivery'=> '0',
             'layout_type'=> '2',
             'tracking_link'=> 1,
             'timezone'=> '-330',
-            'custom_field_template'=> 'Template_1',
             'api_key'=> $this->api_key,
             'team_id'=> '',
             'auto_assignment'=> '0',
-            'fleet_id'=> '',
+            'fleet_id'=> $agents[0],
             'ref_images'=> [
-              'http=>//tookanapp.com/wp-content/uploads/2015/11/logo_dark.png',
-              'http=>//tookanapp.com/wp-content/uploads/2015/11/logo_dark.png'
+                'http=>//tookanapp.com/wp-content/uploads/2015/11/logo_dark.png',
+                'http=>//tookanapp.com/wp-content/uploads/2015/11/logo_dark.png'
             ],
             'notify'=> 1,
             'tags'=> '',
-            'geofence'=> 1
+            'geofence'=> 0
         );
         $response = wp_remote_post( $url, array(
             'method'      => 'POST',
@@ -142,18 +139,28 @@ class Adept_Drivers_Tookan
             'cookies'     => array()
             )
         );
-        if ( is_wp_error( $response ) ) {
-            wp_send_json(array(
+        $this->logger->Log_Information(gettype($response['body']['data']), 'Add Task Response--TYPE');
+        $this->logger->Log_Information($response['body']['data'], 'Add Task Response');
+        if ( is_wp_error( $response )  ) {
+            return array(
                 "success" => false,
-                "message" => $response->get_error_message()
-            ), 400);
+                "message" => $response
+            );
         } else {
-            wp_send_json(array(
-                "success" => true,
-                "message" => $response['body'],
-                'key' => $this->api_key,
-                'body' => $body
-            ));
+            $response_body = json_decode($response['body'], true);
+            if(empty($response_body['data'])){
+                return array(
+                    "success" => false,
+                    "message" => $response['message']
+                );
+            }else{
+                return array(
+                    "success" => true,
+                    'agent_id' => $agents[0],
+                    'job_id' => $response_body['data']['job_id']
+                );
+            }
+
         }
 
     }
@@ -188,6 +195,19 @@ class Adept_Drivers_Tookan
                 "message" => $response->get_error_message()
             ), 400);
         } else {
+            //Save agents in DB
+            $instructor = new Adept_Drivers_Instructors();
+
+            $response_body = json_decode($response['body'], true);
+            foreach ($response_body['data'] as $agent) {
+                $this->logger->Log_Information($agent, __FUNCTION__);
+                $instructor->insert_update_instructor(array(
+                    'instructor_id' => $agent['fleet_id'],
+                    'inst_name' => $agent['name'],
+                    'latitude' => $agent['latitude'],
+                    'longitude' => $agent['longitude']
+                ));
+            }
             wp_send_json(array(
                 "success" => true,
                 "message" => $response['body'],
@@ -267,17 +287,16 @@ class Adept_Drivers_Tookan
         );
 
 
-        if ( is_wp_error( $response ) || empty($response['body']['data'])) {
-            $this->logger->Log_Error($response['body'], 'Agnet by proximity');
+        if ( is_wp_error( $response ) ) {
+            $this->logger->Log_Error($response['body'], 'Agent by proximity');
             return false;
         } else {
-            // wp_send_json(array(
-            //     "success" => true,
-            //     "message" => $response['body']
-            // ));
-            $this->logger->Log_Information($response['body']['data'], 'Agent by promixity');
+            
+            $response_arr = json_decode( $response['body'], true);
+            $this->logger->Log_Information($response_arr, 'Agent by promixity');
+            $this->logger->Log_Information(array_keys($response_arr['data'][0]), 'Type of data');
 
-            return json_decode($response['body']['data']);
+            return $response_arr['data'][0]['fleet_id'];
         }
     }
 
@@ -299,7 +318,9 @@ class Adept_Drivers_Tookan
             'name'=> $customer['name'],
             'phone' => $customer['phone'],
             'email' => $customer['email'],
-            'address' => $customer['address']
+            'address' => $customer['address'],
+            'latitude' => $customer['latitude'],
+            'longitude' => $customer['longitude']
         );
 
         $response = wp_remote_post( $url, array(
@@ -330,6 +351,50 @@ class Adept_Drivers_Tookan
         }
     }
 
+    /**
+     * Get Agent Data
+     * 
+     * @param Int $agentID
+     * 
+     * @return Array $agent
+     */
+    public function get_agent_details( $agentID ){
+        $url = $this->api_url . 'view_fleet_profile';
+
+        $body = array(
+            'api_key'=> $this->api_key,
+            'fleed_id' => $agentID
+
+        );
+        $this->logger->Log_Information($body, __FUNCTION__);
+        $response = wp_remote_post( $url, array(
+            'method'      => 'POST',
+            'timeout'     => 45,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array('Content-Type'=> 'application/json'),
+            'body'        => json_encode($body),
+            'cookies'     => array()
+            )
+        );
+
+
+        if ( is_wp_error( $response ) ) {
+            $this->logger->Log_Error($response['body'], __FUNCTION__);
+            return false;
+        } else {
+            // wp_send_json(array(
+            //     "success" => true,
+            //     "message" => $response['body']
+            // ));
+            $this->logger->Log_Information($response['body'], __FUNCTION__);
+            $this->logger->Log_Type(json_encode($response['body']), __FUNCTION__);
+
+            return json_decode($response['body'], true);
+        }
+    }
+
 
     /**
      * Ajax to display key
@@ -341,6 +406,41 @@ class Adept_Drivers_Tookan
             "success"=> true,
             'message' => $this->display_key(),
         ), 200);
+    }
+
+    /**
+     * Delete Task
+     * 
+     * @param Int $job_id
+     * 
+     * @return Bool
+     */
+    public function delete_task( $job_id ){
+        $url = $this->api_url . 'delete_task';
+
+        $body = array(
+            'api_key'=> $this->api_key,
+            'job_id' => $job_id
+
+        );
+        $response = wp_remote_post( $url, array(
+            'method'      => 'POST',
+            'timeout'     => 45,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array('Content-Type'=> 'application/json'),
+            'body'        => json_encode($body),
+            'cookies'     => array()
+            )
+        );
+
+
+        if ( is_wp_error( $response ) ) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**

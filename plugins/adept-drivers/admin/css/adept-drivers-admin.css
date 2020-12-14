@@ -17,3 +17,106 @@ div.adminpage input:not([type=submit]) {
     border-radius: 0px;
     border-color: #eee;
 }
+
+.ad-student-details {
+    display: none;
+    position: absolute;
+    background: #00000036;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin-left: -20px;
+}
+
+.ad-student-details.show {
+    display: block;
+}
+
+#student-card {
+    background: white;
+    height: auto;
+    width: 500px;
+    margin: 20% auto;
+    padding: 25px;
+    font-size: 2rem;
+    position: relative;
+}
+
+div#student-card a#close-student-card {
+    position: absolute;
+    top: 0;
+    right: 5px;
+    color: #b10404;
+}
+
+.student-card-content > div {
+    margin: 15px;
+    font-weight: 500;
+}
+
+div#student-card .add-bookingdate {
+    display: none;
+    -webkit-transition: all .3s ease;
+    -moz-transition: all .3s ease;
+    transition: all .3s ease;
+}
+
+.add-booking {
+    display: block;
+    /* width: 100px; */
+    right: 10px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    -webkit-transition: all .3s ease;
+    -moz-transition: all .3s ease;
+    transition: all .3s ease;
+  }
+  .add-booking:hover {
+    background: #b3b1b1;
+    border: 1px solid #949494;
+  }
+
+  .add-booking i {
+    margin: 0 10px;
+    font-size: 2rem;
+    color: #999 !important;
+    margin-top: 3px;
+  }
+  .booking-confirmation {
+    display: inline-block;
+    float: right;
+    padding: 5px;
+    border: 2px solid transparent;
+    font-size: 1.5rem;
+    margin: 5px;
+}
+
+.booking-confirmation.success{
+    border-color: rgb(1, 68, 1);
+}
+
+.booking-confirmation.fail{
+    border-color: #6b0101;
+}
+
+.add-booking i:hover {
+color: #f6f7fb !important;
+}
+
+div.instructor-bookings {
+    border: 1px solid transparent;
+    padding: 0px 5px;
+    height: 0px;
+    overflow: hidden;
+}
+
+div.instructor-bookings.show {
+    border-color: #ddd;
+    height: auto;
+}
+
+div.instructor-bookings li {
+    border-bottom: 1px solid #ddd;
+}

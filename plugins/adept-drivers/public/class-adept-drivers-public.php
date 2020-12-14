@@ -3,16 +3,6 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
 /**
  * The public-facing functionality of the plugin.
  *
- * @link       https://samiscoding.com
- * @since      1.0.0
- *
- * @package    Adept_Drivers
- * @subpackage Adept_Drivers/public
- */
-
-/**
- * The public-facing functionality of the plugin.
- *
  * Defines the plugin name, version, and two examples hooks for how to
  * enqueue the public-facing stylesheet and JavaScript.
  *
@@ -50,6 +40,14 @@ class Adept_Drivers_Public {
 	private $Mustache;
 
 	/**
+	 * Logger.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+	private $logger;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -60,6 +58,7 @@ class Adept_Drivers_Public {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+        $this->logger = new Adept_Drivers_Logger('PUBLIC');
 		$this->Mustache = new Mustache_Engine(array(
 													'entity_flags' => ENT_QUOTES,
 													'loader' => new Mustache_Loader_FilesystemLoader(dirname(__FILE__).'/templates')
@@ -87,8 +86,10 @@ class Adept_Drivers_Public {
 		 */
 
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/adept-drivers-public.css', array(), $this->version, 'all' );
+		wp_enqueue_style( 'bootstrap-datepicker-css' , plugin_dir_url(__FILE__) . 'css/bootstrap-datepicker.min.css', array(), $this->version, 'all');
+		wp_enqueue_style( 'bootstrap-css' , plugin_dir_url(__FILE__) . 'css/bootstrap.min.css', array(), $this->version, 'all');
 		if (is_page('user-account')) {
-			wp_enqueue_style('adept-drivers-calendar-css' , plugin_dir_url( __FILE__ ) . 'css/adept-drivers-calendar.css', array(), $this->version, 'all');
+			// wp_enqueue_style('adept-drivers-css' , plugin_dir_url( __FILE__ ) . 'css/adept-drivers-calendar.css', array(), $this->version, 'all');
 		}
 	}
 
@@ -111,11 +112,15 @@ class Adept_Drivers_Public {
 		 * class.
 		 */
 
-		wp_enqueue_scripts( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/adept-drivers-public.js', array( 'jquery' ), $this->version, false );
-		if (is_page('user-account')) {
-			wp_enqueue_script('momentsjs' , plugin_dir_url( __FILE__ ) . 'js/lib/moments.js', array( '' ), $this->version, true);
-			wp_enqueue_script('adept-drivers-calendar-js' , plugin_dir_url( __FILE__ ) . 'js/adept-drivers-calendar.js', array(''), $this->version, true);
-		}
+		// if (is_page('user-account')) {
+			wp_enqueue_script('momentsjs' , plugin_dir_url( __FILE__ ) . 'js/lib/moments.js', array(), $this->version, true);
+			wp_enqueue_script( 'bootstrap-js-pub' , plugin_dir_url(__FILE__) . 'js/bootstrap.min.js', array('jquery','momentsjs'), $this->version, true);
+			wp_enqueue_script ( 'bootstrap-datepicker-js-pub' , plugin_dir_url(__FILE__) . 'js/bootstrap-datepicker.min.js', array('bootstrap-js-pub'), $this->version, true);
+			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/adept-drivers-public.js', array( 'bootstrap-datepicker-js-pub' ), $this->version, true );
+			wp_localize_script( $this->plugin_name, 'ajaxurl',
+            array( 'ajax_url' => admin_url( 'admin-ajax.php' ) ) );
+
+		// }
 
 	}
 
@@ -170,11 +175,35 @@ class Adept_Drivers_Public {
 	 */
 	function booking_page_cb(){
 		//:: TODO Render page
+		$student_id = get_current_user_id();
+		$bookings = $this->get_student_bookings($student_id);
+		$bookings = array_map(function($a){ 
+			$a['status'] = $a['status'] == 1 ? 'Pending' : 'Complete';
+			$a['cancel'] = $a['status'] == 'Pending' ? true : false;
+			return $a;
+		}, $bookings);
 		$tpl = $this->Mustache->loadTemplate('lessons-booking');
+		$this->logger->Log_Information($bookings, __FUNCTION__);
 		echo $tpl->render(array(
-			'emptyBookings' => true,
-			'bookings' => false
+			'bookings' => $bookings,
+			'ID' => $student_id
 		));
+	}
+
+	/**
+	 * Get Student Bookings
+	 * 
+	 * @param Int $id
+	 * 
+	 * @return Array $bookings
+	 */
+	public function get_student_bookings($id){
+		//Get Bookings
+		$booking_ins = new Adept_Drivers_Public_Booking();
+
+		$bookings = $booking_ins->get_student_bookings($id);
+
+		return $bookings;
 	}
 
 }

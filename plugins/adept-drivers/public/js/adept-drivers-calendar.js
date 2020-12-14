@@ -1,7 +1,7 @@
 !function() {
 
     var today = moment();
-  
+    window.SelectedDate = '';
     function Calendar(selector, events) {
       this.el = document.querySelector(selector);
       this.events = events;
@@ -55,6 +55,7 @@
       var self = this;
       
       this.events.forEach(function(ev) {
+        console.log(ev);
        ev.date = self.current.clone().date(Math.random() * (29 - 1) + 1);
       });
       
@@ -175,11 +176,18 @@
       }
       return classes.join(' ');
     }
+
+    Calendar.prototype.returnDate = function(){
+      console.log(this.current);
+    }
   
     Calendar.prototype.openDay = function(el) {
       var details, arrow;
       var dayNumber = +el.querySelectorAll('.day-number')[0].innerText || +el.querySelectorAll('.day-number')[0].textContent;
       var day = this.current.clone().date(dayNumber);
+      console.log(day);
+      // console.log(dayNumber);
+      window.SelectedDate = this.current.month() + day;
   
       var currentOpened = document.querySelector('.details');
   
@@ -205,9 +213,12 @@
           });
           currentOpened.className = 'details out';
         }
-  
+
         //Create the Details Container
         details = createElement('div', 'details in');
+
+        
+
   
         //Create the arrow
         var arrow = createElement('div', 'arrow');
@@ -227,14 +238,24 @@
   
       this.renderEvents(todaysEvents, details);
   
-      arrow.style.left = el.offsetLeft - el.parentNode.offsetLeft + 27 + 'px';
+      arrow.style.left = el.offsetLeft - el.parentNode.offsetLeft + 54 + 'px';
     }
   
     Calendar.prototype.renderEvents = function(events, ele) {
       //Remove any events in the current details element
       var currentWrapper = ele.querySelector('.events');
       var wrapper = createElement('div', 'events in' + (currentWrapper ? ' new' : ''));
-  
+      
+      //Create add booking
+      var addBooking = createElement('div', 'add-booking');
+      var addBookingBtnIcon = createElement('i', 'fa fa-plus');
+      var addBookingBtn = createElement('a');
+      addBookingBtn.setAttribute('href', '#')
+      addBookingBtn.appendChild(addBookingBtnIcon);
+      addBooking.appendChild(addBookingBtn);
+      wrapper.appendChild(addBooking);
+
+
       events.forEach(function(ev) {
         var div = createElement('div', 'event');
         var square = createElement('div', 'event-category ' + ev.color);
@@ -244,10 +265,10 @@
         div.appendChild(span);
         wrapper.appendChild(div);
       });
-  
+      
       if(!events.length) {
         var div = createElement('div', 'event empty');
-        var span = createElement('span', '', 'No Events');
+        var span = createElement('span', '', 'No Bookings');
   
         div.appendChild(span);
         wrapper.appendChild(div);
@@ -342,13 +363,12 @@
       { eventName: 'Startup Weekend', calendar: 'Other', color: 'green' }
     ];
   
-    
-  
-    function addDate(ev) {
-      
-    }
-  
+
     var calendar = new Calendar('#calendar', data);
-  
+    setTimeout(() => {
+      calendar.returnDate();
+    }, 5000);
+
+
   }();
   

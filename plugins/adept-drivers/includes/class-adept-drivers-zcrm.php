@@ -110,7 +110,7 @@ class Adept_Drivers_ZCRM {
      * @return void
      */
     public function handle_zcrm_notifications( $request ){
-        global $wpdb;
+        $student_ins = new Adept_Drivers_Students();
         /** 
          * The post data fetched raw
          */
@@ -120,124 +120,191 @@ class Adept_Drivers_ZCRM {
          * Post data mutated to array
          */
         $post_data = json_decode(json_encode($post_data), true);
+
+        $this->logger->Log_Information($post_data, 'Webhook');
+
+        /**
+        * Convert address data
+        */
+        $user_address = array(
+            'student_address_1' => 'billing_address_1',
+            'student_city' => 'billing_city',
+            'student_postal' => 'billing_postcode',
+            'student_state' => 'billing_state',
+            'student_phone' => 'billing_phone'
+        );
+
+        /**
+         * Holds core data from zcrm
+         */
+        $zcrm_core = ['studentemail', 'student_name', 'student_registration'];
+
         if(is_array($post_data)){
-            /**
-             * Generate password
-             */
-            $pass = wp_generate_password( 12, true );
 
-            /**
-             * Prep userdata
-             */
-            $userdata = array(
-                'user_pass'             => $pass,   //(string) The plain-text user password.
-                'user_login'            => explode('@',$post_data['studentemail'])[0],   //(string) The user's login username.
-                'user_nicename'         => str_replace('.','_',explode('@',$post_data['studentemail'])[0]),   //(string) The URL-friendly user name.
-                'user_email'            => $post_data['studentemail'],   //(string) The user email address.
-                'display_name'          => $post_data['student_name'],   //(string) The user's display name. Default is the user's username.
-                'first_name'            => explode(' ', $post_data['student_name'])[0],   //(string) The user's first name. For new users, will be used to build the first part of the user's display name if $display_name is not specified.
-                'last_name'             => explode(' ', $post_data['student_name'])[1],   //(string) The user's last name. For new users, will be used to build the second part of the user's display name if $display_name is not specified.
-                'user_registered'       => $post_data['student_registration'],   //(string) Date the user registered. Format is 'Y-m-d H:i:s'.
-                'show_admin_bar_front'  => 'false',   //(string|bool) Whether to display the Admin Bar for the user on the site's front end. Default true.
-                'role'                  => 'student',   //(string) User's role.
-             
-            );
+            //Check if user exists
+            $user_exists = get_user_by('email', $post_data['studentemail']);
 
-            /**
-             * Holds core data from zcrm
-             */
-            $zcrm_core = ['studentemail', 'student_name', 'student_registration'];
 
-            /**
-             * create new user
-             * 
-             * @return Int|WP_error
-             */
-            $new_user = wp_insert_user($userdata);
+            if($user_exists){
+                $this->logger->Log_Information($post_data, 'Webhook-Post data');
 
-            if(!is_wp_error($new_user)){
-               /**
-                * Convert address data
-                */
-                $user_address = array(
-                    'student_address_1' => 'billing_address_1',
-                    'student_city' => 'billing_city',
-                    'student_postal' => 'billing_postcode',
-                    'student_state' => 'billing_state',
-                    'student_phone' => 'billing_phone'
+                $user_id = $user_exists->ID;
+
+                //update user
+                $userdata = array(
+                    'ID'                    => $user_id,
+                    'user_login'            => explode('@',$post_data['studentemail'])[0],   //(string) The user's login username.
+                    'user_nicename'         => str_replace('.','_',explode('@',$post_data['studentemail'])[0]),   //(string) The URL-friendly user name.
+                    'user_email'            => $post_data['studentemail'],   //(string) The user email address.
+                    'display_name'          => $post_data['student_name'],   //(string) The user's display name. Default is the user's username.
+                    'first_name'            => explode(' ', $post_data['student_name'])[0],   //(string) The user's first name. For new users, will be used to build the first part of the user's display name if $display_name is not specified.
+                    'last_name'             => explode(' ', $post_data['student_name'])[1],   //(string) The user's last name. For new users, will be used to build the second part of the user's display name if $display_name is not specified.
+                    'user_registered'       => $post_data['student_registration'],   //(string) Date the user registered. Format is 'Y-m-d H:i:s'.
+                    'show_admin_bar_front'  => 'false',   //(string|bool) Whether to display the Admin Bar for the user on the site's front end. Default true.
+                    'role'                  => 'student',   //(string) User's role.
                 );
 
-                $add_string = $post_data['student_address_1'] . ', ' . $post_data['student_city'] . ' ' . $post_data['student_postal'] . ', ' . $post_data['student_state'];
-
+                $user_metas = array();
+                //Update user metas
                 /**
                  * Add user meta -- only if not core
                  */
-                 foreach ( $post_data as $key=>$value ){
-                     if(!in_array($key, $zcrm_core)){
-                         if(array_key_exists($key, $user_address)){
-                             add_user_meta( $new_user, $user_address[$key], $value, true);
-                         }else{
-                            add_user_meta( $new_user, '_' . $key, $value, true );
-                         }
-                     }
-                 }
-                 add_user_meta( $new_user, 'ad_is_active', true, true);
+                foreach ( $post_data as $key=>$value ){
+                    if(!in_array($key, $zcrm_core)){
+                        $user_metas[$key] = $value; 
+                        if(array_key_exists($key, $user_address)){
+                            $user_metas[$user_address[$key]] = $value;
+                        }else{
+                            $user_metas[$key] = $value;
+                        }
+                    }
+                }
 
-                 //Associate User to Instructor
-                 $TOKAAN = new Adept_Drivers_Tookan();
-                 $customer = $TOKAAN->add_customer(array('name' => $post_data['student_name'], 'phone' => $post_data['student_phone'], 'email' => $post_data['studentemail'], 'address' => $add_string));
-                 $this->logger->Log_Information($customer, 'Saving student tookan ID');
-                 $this->logger->Log_Type($customer, "Saving student tookan ID");
-                 
-                 if($customer['data']['customer_id']){
-                     add_user_meta( $new_user, 'ad_student_tookan_id', $customer['data']['customer_id'], true);
+                $data = array_merge($userdata, $user_metas);
+                $update_student = $student_ins->update_user_student($data);
 
-                     // Get agents near this customer
-                     $agent = $TOKAAN->get_agents_near_customer( $customer['data']['customer_id'] );
-                     if($agent){
-                         $agentID = [$agent[0]['fleet_id']];
-                         add_user_meta( $new_user, 'ad_student_instructor', $agentID, true);
-                     }
-                 }
-                 /**
-                  * Prep user for LMS activation
-                  */
-                  $user = array(                
-                    "username" => $userdata['user_nicename'],
-                    "password" => $pass,
-                    "firstname" => $userdata['first_name'],
-                    "lastname" => $userdata['last_name'],
-                    "email" => $post_data['studentemail'],
-                    "phone1" => $user_address['student_phone'],     
-                );
-                // $f = fopen( $filename, 'a');
-                // $date = new DateTime();
-                // fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' user array: ' . $proccessed . PHP_EOL);
-                // fclose($f);
+                if(!$update_student){
+                    $this->logger->Log_Error('Failed to update user', __FUNCTION__);
+                }
+                // add_user_meta( $new_user, 'ad_is_active', true, true);
+
+
+            }else{
+                /**
+                 * Generate password
+                 */
+                $pass = wp_generate_password( 12, true );
+                // $add_string = $post_data['student_address_1'] . ', ' . $post_data['student_city'] . ' ' . $post_data['student_postal'] . ', ' . $post_data['student_state'] . ' Canada';
+                // /**
+                //  * Get user coordinates
+                //  */
+                // $geocoder = new Adept_Drivers_Geocoding($add_string);
+                // $coordinates = $geocoder->geocode();
+                // $this->logger->Log_Information($coordinates, 'User-Coords');
+
+                // $pass .= rand(100, 999);
 
                 /**
-                 * Signup new user into LMS
+                 * Prep userdata
                  */
-                $LMS = new Adept_Drivers_LMS();
-                $proccessed = $LMS->process_user($user);
-
-                //Log
-                // if (!file_exists(plugin_dir_path( __DIR__ ) . '/logs')) {
-                //     mkdir(plugin_dir_path( __DIR__ ) . '/logs', 0777, true);
-                // }
-                // $f = fopen( $filename, 'a');
-                // $date = new DateTime();
-                // fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' RESULT: ' . $proccessed . PHP_EOL);
-                // fclose($f);
+                $userdata = array(
+                    'user_pass'             => $pass,   //(string) The plain-text user password.
+                    'user_login'            => explode('@',$post_data['studentemail'])[0],   //(string) The user's login username.
+                    'user_nicename'         => str_replace('.','_',explode('@',$post_data['studentemail'])[0]),   //(string) The URL-friendly user name.
+                    'user_email'            => $post_data['studentemail'],   //(string) The user email address.
+                    'display_name'          => $post_data['student_name'],   //(string) The user's display name. Default is the user's username.
+                    'first_name'            => explode(' ', $post_data['student_name'])[0],   //(string) The user's first name. For new users, will be used to build the first part of the user's display name if $display_name is not specified.
+                    'last_name'             => explode(' ', $post_data['student_name'])[1],   //(string) The user's last name. For new users, will be used to build the second part of the user's display name if $display_name is not specified.
+                    'user_registered'       => $post_data['student_registration'],   //(string) Date the user registered. Format is 'Y-m-d H:i:s'.
+                    'show_admin_bar_front'  => 'false',   //(string|bool) Whether to display the Admin Bar for the user on the site's front end. Default true.
+                    'role'                  => 'student',   //(string) User's role.
                 
-            }else{
-                // $f = fopen( $filename, 'a');
-                // $date = new DateTime();
-                // fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($new_user) . ' Type: Failed Insert.' . PHP_EOL);
-                // fclose($f);
-            }
-        };
+                );
 
+                $user_metas = array();
+
+                // /**
+                //  * create new user
+                //  * 
+                //  * @return Int|WP_error
+                //  */
+                // $new_user = wp_insert_user($userdata);
+
+                foreach ( $post_data as $key=>$value ){
+                    if(!in_array($key, $zcrm_core)){
+                        if(array_key_exists($key, $user_address)){
+                            $user_metas[$user_address[$key]] = $value;
+                        }else{
+                            $user_metas[$key] = $value;
+                        }
+                    }
+                }
+
+                $data = array_merge($userdata, $user_metas);
+                $insert_student = $student_ins->create_user_student($data);
+                // if($insert_student){
+                    
+                // }
+                // if(!is_wp_error($new_user)){
+
+
+                //     /**
+                //      * Add user meta -- only if not core
+                //      */
+
+                //     add_user_meta( $new_user, 'ad_is_active', true, true);
+
+                //     //Associate User to Instructor
+                //     $TOKAAN = new Adept_Drivers_Tookan();
+                //     $customer = $TOKAAN->add_customer(array('name' => $post_data['student_name'], 'phone' => $post_data['student_phone'], 'email' => $post_data['studentemail'], 'address' => $add_string, 'latitude' => $coordinates[0], 'longitude' => $coordinates[1]));
+                //     $this->logger->Log_Information($customer, 'Saving student tookan ID');
+                //     $this->logger->Log_Type($customer, "Saving student tookan ID");
+                    
+                //     if($customer['data']['customer_id']){
+                //         add_user_meta( $new_user, 'ad_student_tookan_id', $customer['data']['customer_id'], true);
+                //         $agentID = array();
+                //         // Get agents near this customer
+                //         $agent = $TOKAAN->get_agents_near_customer( $customer['data']['customer_id'] );
+                //         if($agent) array_push($agentID, $agent[0]['fleet_id']);
+                //             add_user_meta( $new_user, 'ad_student_instructor', $agentID, true);
+                //     }
+                //     /**
+                //      * Prep user for LMS activation
+                //     */
+                //     $user = array(                
+                //         "username" => $userdata['user_nicename'],
+                //         "password" => $pass,
+                //         "firstname" => $userdata['first_name'],
+                //         "lastname" => $userdata['last_name'],
+                //         "email" => $post_data['studentemail'],
+                //         "phone1" => $user_address['student_phone'],     
+                //     );
+                //     // $f = fopen( $filename, 'a');
+                //     // $date = new DateTime();
+                //     // fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' user array: ' . $proccessed . PHP_EOL);
+                //     // fclose($f);
+
+                //     /**
+                //      * Signup new user into LMS
+                //      */
+                //     $LMS = new Adept_Drivers_LMS();
+                //     $proccessed = $LMS->process_user($user);
+
+                //     //Log
+                //     // if (!file_exists(plugin_dir_path( __DIR__ ) . '/logs')) {
+                //     //     mkdir(plugin_dir_path( __DIR__ ) . '/logs', 0777, true);
+                //     // }
+                //     // $f = fopen( $filename, 'a');
+                //     // $date = new DateTime();
+                //     // fwrite($f, date_format($date, 'Y-m-d H:i:s') . '--- ' . json_encode($user) . ' RESULT: ' . $proccessed . PHP_EOL);
+                //     // fclose($f);
+
+                // };
+            }
+
+
+            
+        }
         $response = new WP_REST_Response( array(
             'success' => true,
             'message' => 'You\'ve reached the ZCRM endpoint'

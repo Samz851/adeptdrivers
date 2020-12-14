@@ -2,3 +2,80 @@
  * All of the CSS for your public-facing functionality should be
  * included in this file.
  */
+
+ * {
+  transition: all 0.3s ease-in;
+ }
+ .add-booking {
+  display: inline-block;
+}
+ .add-bookingdate {
+  display: inline-block;
+  max-width: 50%;
+}
+.ad-booking-btn.col-md-2 {
+  text-align: center;
+  background: #f6f7fb;
+  display: block;
+  /* position: absolute; */
+  min-height: 100%;
+  font-size: 20px;
+  padding: 15px;
+  
+}
+.ad-booking-btn.col-md-2:hover {
+  background: #419DE6;
+}
+.ad-booking-btn.col-md-2:hover i {
+  color: #ffffff;
+}
+
+.ad-booking-btn a {
+  display: block;
+}
+
+div.add-bookingdate{
+  opacity: 0;
+  visibility: hidden;
+  margin-right: 22px;
+}
+div.add-bookingdate.show{
+  opacity: 1;
+  visibility: visible;
+}
+div.ad-booking-calendar table {
+  width: 100%;
+}
+
+div.ad-booking-calendar table thead tr td {
+  background: #419de6;
+  color: white;
+  font-weight: 500;
+}
+
+.booking-confirmation {
+  display: inline-block;
+  float: right;
+  padding: 5px;
+  border: 2px solid transparent;
+  font-size: 1.5rem;
+  margin: 5px;
+}
+
+.booking-confirmation.success{
+    border-color: rgb(1, 68, 1);
+}
+
+.booking-confirmation.fail{
+    border-color: #6b0101;
+}
+
+div.dash-unit {
+  background: #F6F7FB
+}
+.ad-dash-unit.col-md-6 {
+  margin-bottom: 20px;
+}
+.ad-dash-unit.col-md-6 table {
+  min-width: 100%;
+}

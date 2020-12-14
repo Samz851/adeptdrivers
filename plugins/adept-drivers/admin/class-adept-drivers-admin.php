@@ -1,4 +1,6 @@
 <?php
+require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -28,6 +30,13 @@ class Adept_Drivers_Admin {
 	 * @var      string    $version    The current version of this plugin.
 	 */
 	private $version;
+
+	/**
+	 * User password
+	 * @access private
+	 * @var string
+	 */
+	private $pass;
 
 	/**
 	 * Initialize the class and set its properties.
@@ -63,8 +72,12 @@ class Adept_Drivers_Admin {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-
+		if($_GET['page'] == 'adept-drivers-plugin-students'){
+			wp_enqueue_style( 'bootstrap-datepicker-css' , plugin_dir_url(__FILE__) . 'css/bootstrap-datepicker.min.css', array(), $this->version, 'all');
+			wp_enqueue_style( 'bootstrap-css' , plugin_dir_url(__FILE__) . 'css/bootstrap.min.css', array(), $this->version, 'all');
+		}
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/adept-drivers-admin.css', array(), $this->version, 'all' );
+
 
 	}
 
@@ -87,7 +100,11 @@ class Adept_Drivers_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/adept-drivers-admin.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( 'moments-js' , plugin_dir_url(__FILE__) . 'js/moments.js', array(), $this->version, true);
+		wp_enqueue_script( 'bootstrap-js' , plugin_dir_url(__FILE__) . 'js/bootstrap.min.js', array('moments-js'), $this->version, true);
+		wp_enqueue_script ( 'bootstrap-datepicker-js' , plugin_dir_url(__FILE__) . 'js/bootstrap-datepicker.min.js', array('bootstrap-js'), $this->version, true);
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/adept-drivers-admin.js', array( 'jquery', 'bootstrap-datepicker-js' ), $this->version, false );
+
 
 	}
 
@@ -215,6 +232,37 @@ class Adept_Drivers_Admin {
 		<div class="clear"></div>
 		<?php
 	  }
+
+	  /**
+	   * Validation for Registration extra field
+	   * 
+	   * @param String $username
+	   * 
+	   * @param String $email
+	   * 
+	   * @param Object $validation_errors
+	   * 
+	   * @return Object $validation_errors
+	   */
+		public function ad_validate_extra_register_fields( $username, $email, $validation_errors ) {
+			if ( isset( $_POST['student_dob'] ) && empty( $_POST['student_dob'] ) ) {
+				$validation_errors->add( 'student_dob', __( '<strong>Error</strong>: Date of Birth is required!', 'adept-drivers' ) );
+			}
+			if ( isset( $_POST['billing_address_1'] ) && empty( $_POST['billing_address_1'] ) ) {
+				$validation_errors->add( 'billing_address_1', __( '<strong>Error</strong>: Address is required!.', 'adept-drivers' ) );
+			}
+			if ( isset( $_POST['billing_city'] ) && empty( $_POST['billing_city'] ) ) {
+				$validation_errors->add( 'billing_city', __( '<strong>Error</strong>: City is required!.', 'adept-drivers' ) );
+			}
+			if ( isset( $_POST['billing_postcode'] ) && empty( $_POST['billing_postcode'] ) ) {
+				$validation_errors->add( 'billing_postcode', __( '<strong>Error</strong>: Postal Code is required!.', 'adept-drivers' ) );
+			}
+			if ( isset( $_POST['billing_state'] ) && empty( $_POST['billing_state'] ) ) {
+				$validation_errors->add( 'billing_state', __( '<strong>Error</strong>: Province is required!.', 'adept-drivers' ) );
+			}
+			$this->pass = $_POST['password'];
+			return $validation_errors;
+		}
 	  
 	  /**
 	   * Deactivate all newly registered users
@@ -226,6 +274,19 @@ class Adept_Drivers_Admin {
 	  function inactive_user_registration( $user_id ){
 		if( !empty($_POST) ){
 			add_user_meta( $user_id, 'ad_is_active', false, true);
+
+			//get user coordinates
+			//First get metas to format address string
+			$user_metas = get_user_meta($user_id);
+			//then get address string
+			$add_string = $user_metas['billing_address_1'] . ', ' . $user_metas['billing_city'] . ' ' . $user_metas['billing_postal'] . ', ' . $user_metas['billing_state'] . ' Canada';
+			//then initialize geocoder
+			$geocorder = new Adept_Drivers_Geocoding($add_string);
+			//then get coordinates
+			$coordinates = $geocorder->geocode();
+			//Finally save coordinates
+			add_user_meta( $user_id, 'coordinates', array('lat' => $coordinates[0], 'long' => $coordinates[1]), true);
+
 		}
 	  }
 
@@ -260,26 +321,102 @@ class Adept_Drivers_Admin {
 	 * @since 1.0.0
 	 */
 	function activate_user_after_purchase( $order_id ){
+		$register_lms = false;
+		$booking_lessons = 0;
 		$order = wc_get_order( $order_id );
 		$userID = $order->get_user_id();
 		$order->add_order_note( $userID );
 		$order->add_order_note(__('This is a test note', 'adept-drivers'));
+		$user_metas = get_user_meta( $userID );
 		if( $userID ){
 			$user = get_userdata($userID);
-			$pass = wp_generate_password( $length = 12, $include_standard_special_chars = false );
+			// $pass = wp_generate_password( $length = 12, $include_standard_special_chars = false );
 			$user_data = array(                
-				"username" => $userdata->user_nicename,
-				"password" => $pass,
-				"firstname" => $userdata['first_name'],
-				"lastname" => $userdata['last_name'],
-				"email" => $post_data['studentemail'],
-				"phone1" => $user_address['student_phone'],     
+				"username" => $user->user_nicename,
+				"password" => $this->pass,
+				"firstname" => $user_metas['first_name'],
+				"lastname" => $user_metas['last_name'],
+				"email" => $user->user_meail,
+				"phone1" => $user_metas['billing_phone'],     
 			);
 
-			update_user_meta( $user, 'ad_is_active', true);
+			update_user_meta( $userID, 'ad_is_active', true);
+			// $order = wc_get_order( $order_id );
+			$items = $order->get_items();
+			foreach ( $items as $item ) {
+				// $product_name = $item->get_name();
+				$product_id = $item->get_product_id();
+				if(get_post_meta( $product_id, 'includes_bde', true ) == 'yes'){
+					$register_lms = true;
+				}
+				$bookings = get_post_meta( $product_id, 'in_car_sessions', true );
+				if($bookings && $bookings > 0){
+					$booking_lessons = $bookings;
+				}
+				$products = unserialize(get_user_meta($userID, 'student_products', true));
+				if($products){
+					$products[] = $product_id;
+				}else{
+					$products = array($product_id);
+				}
+				update_user_meta( $userID, 'student_product', $products );
+			}
+			if($register_lms){
+				$LMS = new Adept_Drivers_LMS();
+				$LMS_user = $LMS->process_user($user_data);
+				add_user_meta($userID, 'lmsid', $LMS_user, true);
 
-			$LMS = new Adept_Drivers_LMS();
-			$LMS_user = $LMS->create_user($user_data);
+			}
+			if($bookings > 0){
+				//Obj for tookan
+				$customer_data = array(
+					'name' => $user->display_name,
+					'phone' => $user_metas['billing_phone'],
+					'email' => $user->user_email,
+					'address' => $user_metas['billing_address_1'] . ', ' . $user_metas['billing_city'] . ' ' . $user_metas['billing_postal'] . ', ' . $user_metas['billing_state'] . ' Canada',
+					'latitude' => maybe_unserialize($user_metas['coordinates']['lat']),
+					'longitude' => maybe_unserialize($user_metas['coordinates']['long'])
+				);
+				$TOKAAN = new Adept_Drivers_Tookan();
+				$customer = $TOKAAN->add_customer($customer_data);
+				if($customer['data']['customer_id']){
+                    add_user_meta( $userID, 'ad_student_tookan_id', $customer['data']['customer_id'], true);
+                    $agentID = array();
+                    // Get agents near this customer
+                    $agent = $TOKAAN->get_agents_near_customer( $customer['data']['customer_id'] );
+                    if($agent) {
+                        array_push($agentID, $agent[0]['fleet_id']);
+                    }else{
+                        //Search locally
+                        $instructor_ins = new Adept_Drivers_Instructors();
+                        $agent_id = $instructor_ins->get_nearest_instructor(array('lat' => maybe_unserialize($user_metas['coordinates']['lat']), 'long' => maybe_unserialize($user_metas['coordinates']['long'])));
+                        if($agent_id) array_push($agentID, $agent_id);
+                    }
+                    add_user_meta( $userID, 'ad_student_instructor', $agentID, true);
+                }
+			}
+
+		}
+	}
+
+	/**
+	 * Hide Admin pages from users
+	 * 
+	 */
+	function ad_remove_menu_pages() {
+
+		global $user_ID;
+		
+		if ( $user_ID != 1 ) {
+			remove_menu_page('edit.php'); // Posts
+			remove_menu_page('upload.php'); // Media
+			remove_menu_page('link-manager.php'); // Links
+			remove_menu_page('edit-comments.php'); // Comments
+			remove_menu_page('edit.php?post_type=page'); // Pages
+			remove_menu_page('plugins.php'); // Plugins
+			remove_menu_page('themes.php'); // Appearance
+			remove_menu_page('tools.php'); // Tools
+			remove_menu_page('options-general.php'); // Settings
 		}
 	}
 
@@ -299,7 +436,11 @@ class Adept_Drivers_Admin {
 	 * @return Array $items
 	 */
 	function ad_booking_menu_items( $items ) {
-		$items[ 'lessons-booking' ] = __( 'Booking', 'adept-drivers' );
+		unset($items['downloads']);
+
+		$items = array_slice($items, 0, 2) + array('lessons-booking' => __( 'Booking', 'adept-drivers' )) + array_slice( $items, 2, NULL, true );
+
+
 		return $items;
 	}
 
@@ -316,7 +457,6 @@ class Adept_Drivers_Admin {
 		return $vars;
 	}
 	
-
 	/**
 	 * Function to run all admin hooks
 	 * 
@@ -325,10 +465,13 @@ class Adept_Drivers_Admin {
 	public function run_all(){
 		require_once plugin_dir_path( __FILE__ ) . '/class-adept-drivers-pages.php';
 		$pages = new Adept_Drivers_Pages();
-		require_once plugin_dir_path( __FILE__  ) . '../includes/class-adept-drivers-tokaan.php';
 		$ad_tookan = new Adept_Drivers_Tookan;
 		$ad_tookan->run_all();
 		$pages->run_all();
+
+		$studentsClass = new Adept_Drivers_Students();
+		$studentsClass->run_all();
+
 	}
 
 

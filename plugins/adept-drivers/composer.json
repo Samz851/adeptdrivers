@@ -5,6 +5,6 @@
         "mustache/mustache": "~2.5"
     },
     "autoload": {
-        "classmap": ["logs/adept-drivers-logger.php"]
+        "classmap": ["logs/adept-drivers-logger.php", "includes/"]
     }
 }

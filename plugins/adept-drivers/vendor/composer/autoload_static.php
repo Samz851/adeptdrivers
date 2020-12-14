@@ -31,7 +31,19 @@ class ComposerStaticInitd49fdb7904759da37bb4f59975132b20
     );
 
     public static $classMap = array (
+        'Adept_Drivers' => __DIR__ . '/../..' . '/includes/class-adept-drivers.php',
+        'Adept_Drivers_Activator' => __DIR__ . '/../..' . '/includes/class-adept-drivers-activator.php',
+        'Adept_Drivers_Deactivator' => __DIR__ . '/../..' . '/includes/class-adept-drivers-deactivator.php',
+        'Adept_Drivers_Geocoding' => __DIR__ . '/../..' . '/includes/class-adept-drivers-geocoding.php',
+        'Adept_Drivers_Instructors' => __DIR__ . '/../..' . '/includes/class-adept-drivers-instructors.php',
+        'Adept_Drivers_LMS' => __DIR__ . '/../..' . '/includes/class-adept-drivers-lms.php',
+        'Adept_Drivers_Loader' => __DIR__ . '/../..' . '/includes/class-adept-drivers-loader.php',
         'Adept_Drivers_Logger' => __DIR__ . '/../..' . '/logs/adept-drivers-logger.php',
+        'Adept_Drivers_Public_Booking' => __DIR__ . '/../..' . '/includes/class-adept-drivers-bookings.php',
+        'Adept_Drivers_Students' => __DIR__ . '/../..' . '/includes/adept-drivers-students.php',
+        'Adept_Drivers_Tookan' => __DIR__ . '/../..' . '/includes/class-adept-drivers-tokaan.php',
+        'Adept_Drivers_ZCRM' => __DIR__ . '/../..' . '/includes/class-adept-drivers-zcrm.php',
+        'Adept_Drivers_i18n' => __DIR__ . '/../..' . '/includes/class-adept-drivers-i18n.php',
         'MoodleRest' => __DIR__ . '/..' . '/llagerlof/moodlerest/MoodleRest.php',
     );
 

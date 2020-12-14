@@ -1,30 +1,47 @@
-<div class="ad-booking-page">
+<div class="ad-booking-page" data-student-id={{ID}}>
+    <div class="booking-confirmation"></div>
     <div class="ad-booking-wrapper">
-        <div class="ad-booking-content">
-            {{# bookings}}
-                <table>
-                    <thead>
-                        <td>{{ headerDate }}</td>
-                        <td>{{ headerStatus }}</td>
-                    </thead>
-                    <tbody>
-                        {{#bookingData }}
-                            <tr>
-                                <td>{{ date }} </td>
-                                <td> {{ status }}</td>
-                            </tr>
-                        {{/bookingData}}
-                    </tbody>
-                </table>
-            {{/ bookings}}
-            {{^bookings}}
-                <h1>NO BOOKINGS</h1>
-            {{/bookings}}
-            <div>
-            </div>
-        </div>
         <div class="ad-booking-calendar">
-            <div id="calendar"></div>
+            <div class="add-booking row">
+                <div class="ad-booking-btn col-md-2">
+                    <a href="#" id="show-booking">
+                        <i class="fa fa-plus"></i>
+                    </a>
+                </div>
+                <div class="add-bookingdate row pull-right">
+                    <div class="col-md-8">
+                        <div class='input-group date' id='datetimepicker1'>
+                            <input id="booking-date" type='text' class="form-control" />
+                            <span class="input-group-addon">
+                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button id="submit-student-booking">Submit</button>
+                    </div>
+                </div>
+            </div>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <td>Booking Date/Time</td>
+                    <td>Booking Status</td>
+                </thead>
+                <tbody class="the-list">
+                    {{^bookings}}
+                    <tr><td colspan="3" id="empty-bookings">No Bookings</td><tr>
+                    {{/bookings}}
+                    {{#bookings }}
+                        {{#.}}
+                            <tr>
+                                <td>{{ booking_date }} </td>
+                                <td> {{ status }} | 
+                                {{#cancel}}<a href="#" data-ad-booking={{job_id}}>Cancel</a></td>{{/cancel}}
+                            </tr>
+                        {{/.}}
+                    {{/bookings}}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

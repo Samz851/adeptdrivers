@@ -129,11 +129,11 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
      * 
      * @return Array $user | False
      */
-    private function create_user($userID = ''){
+    private function create_user($userID){
 
         $assign_to_company_fn = 'block_iomad_company_admin_assign_users';
 
-        $this->MoodleRest->request($assign_to_company_fin, [$userID, $this->company_id], MoodleRest::METHOD_POST);
+        $this->MoodleRest->request($assign_to_company_fn, array('users' => [array('userid' => $userID, 'companyid' => $this->company_id)]), MoodleRest::METHOD_POST);
         $result = $this->MoodleRest->getData();
         if(isset($result['errorcode'])){
             wp_mail( get_option( 'admin_email' ), 'LMS-FAILED REGISTRATION', 'Failed to register student ' . $user['firstname'] . ' ' . $user['lastname'] . ' With error message: ' . $result['debuginfo']);
@@ -154,7 +154,7 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
 
         $enrol_to_course_fn = 'block_iomad_company_admin_enrol_users';
 
-        $this->MoodleRest->request($assign_to_company_fin, [$userID, $this->company_id], MoodleRest::METHOD_POST);
+        $this->MoodleRest->request($enrol_to_course_fn, array('enrolments' => [array('roleid' => $this->student_role_id, 'userid' => $userID, 'courseid' => $this->course_id)]), MoodleRest::METHOD_POST);
         $result = $this->MoodleRest->getData();
         if(isset($result['errorcode'])){
             wp_mail( get_option( 'admin_email' ), 'LMS-FAILED REGISTRATION', 'Failed to register student ' . $user['firstname'] . ' ' . $user['lastname'] . ' With error message: ' . $result['debuginfo']);
@@ -176,17 +176,72 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
         // First initiate user in lms
        $initiate =  $this->initiate_user($user);
        if($initiate){
+        $this->logger->Log_Information($initiate, "process_user-INIT");
            $create = $this->create_user($initiate[0]['id']);
+           $this->logger->Log_Information($create, "process_user-CREATE");
 
            if($create){
                $enrol = $this->enrol_user($initiate[0]['id']);
+               $this->logger->Log_Information($enrol, "process_user-CREATE");
 
-                if($enrol) return true;
+                if($enrol) {
+                    //Send Email
+                    $message = "Welcome to Adept Drivers <br> These are your credentials for the website and the LMS <br> Username: $user[username], password: $user[password]";
+                    $email = wp_mail($user['email'], 'Successful Registration', $message);
+                    $user['isemailed'] = $email;
+                    $user['lmsid'] = $create['users'][0]['userid'];
+                    $this->logger->Log_Error($user, "email user");
+                    return $user;
+                }else{
+                    $this->logger->Log_Error($enrol, "process_user-Enrol");
+                }
+           }else{
+                $this->logger->Log_Error($create, "process_user-CREATE");
            }
+       }else{
+            $this->logger->Log_Error($initiate, "process_user-INIT");
        }
        return false;
     }
 
+    /**
+     * Test Mail
+     */
+    public function test_mail(){
+                            //Send Email
+            $message = "Welcome to Adept Drivers <br> These are your credentials for the website and the LMS <br> Username: $user[username], password: $user[password]";
+            $email = wp_mail('sam.otb@hotmail.ca', 'Successful Registration', $message);
+                $this->logger->Log_Error($email, "email user");
+                $response = new WP_REST_Response( array(
+                    'success' => true,
+                    'message' => 'Check your email'
+                ) );
+                $response->set_status( 200 );
+            return $response;
+    }
+
+    /**
+     * Get Student Progress
+     * 
+     * @param Int $id student id
+     * 
+     * @return Array $student_progress
+     */
+    public function get_student_progress($id){
+        $progress_fn = 'gradereport_overview_get_course_grades';
+        $this->MoodleRest = new MoodleRest($this->domain . '/webservice/rest/server.php', $this->token);
+
+        $this->MoodleRest->request($progress_fn, array('userid' => $id), MoodleRest::METHOD_POST);
+        $result = $this->MoodleRest->getData();
+        if(isset($result['errorcode'])){
+            $this->logger->Log_Error($result, __FUNCTION__);
+            $result = false;
+        }else{
+            $this->logger->Log_Information($result, __FUNCTION__);
+        }
+
+        return $result;  
+    }
 
     /**
      * Function to run all admin hooks
@@ -194,6 +249,6 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
      * @since 1.0.0
      */
     public function run_all(){
-        // add_action( 'wp_ajax_ad_create_lms_user', array($this, 'create_user'));
+        add_action( 'wp_ajax_ad_create_lms_user', array($this, 'test_mail'));
     }
  }

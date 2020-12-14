@@ -40,14 +40,28 @@ class Adept_Drivers_Activator {
 		$sql = "CREATE TABLE $table_name (
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			student_id 	bigint(20) NOT NULL,
-			tookan_id mediumint(12) NOT NULL,
+			tookan_id bigint(12) NOT NULL,
 			booking_date datetime NULL,
-			instructor smallint(64) NULL,
+			instructor bigint(64) NULL,
+			job_id bigint(12) NULL,
 			status BOOLEAN,
 			PRIMARY KEY (id)
 		) $charset_collate;";
 			dbDelta( $sql );
 
+		$table_name = $wpdb->prefix . 'ad_instructors';
+		// $sql = "DROP TABLE IF EXISTS $table_name";
+		// dbDelta( $sql );
+		$sql = "CREATE TABLE $table_name (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			instructor_id 	bigint(20) NOT NULL,
+			inst_name varchar(255) NOT NULL,
+			latitude decimal(11,7) NOT NULL,
+			longitude decimal(11,7) NOT NULL,
+			booking_ids varchar(255) NULL,
+			PRIMARY KEY (id)
+		) $charset_collate;";
+			dbDelta( $sql );
 	}
 
 }
