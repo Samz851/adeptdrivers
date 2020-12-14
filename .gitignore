@@ -9,3 +9,4 @@ plugins/adept-drivers/TokenStorage/zcrm_oauthtokens.txt
 plugins/fail2ban
 plugins/adept-drivers/logs/*.log
 !/plugins/adept-drivers/
+uploads/
