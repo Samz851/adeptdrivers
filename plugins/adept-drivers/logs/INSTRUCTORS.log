@@ -1,0 +1,11 @@
+2020-12-13 21:09:31--- INFO --- 581964 Type: count_agent_bookings SQL
+2020-12-13 21:09:31--- INFO --- "0" Type: count_agent_bookings
+2020-12-13 21:09:31--- INFO --- 806826 Type: count_agent_bookings SQL
+2020-12-13 21:09:31--- INFO --- "0" Type: count_agent_bookings
+2020-12-13 21:09:31--- INFO --- 860291 Type: count_agent_bookings SQL
+2020-12-13 21:09:31--- INFO --- "0" Type: count_agent_bookings
+2020-12-13 21:09:31--- INFO --- 861266 Type: count_agent_bookings SQL
+2020-12-13 21:09:31--- INFO --- "0" Type: count_agent_bookings
+2020-12-13 21:09:31--- INFO --- 861268 Type: count_agent_bookings SQL
+2020-12-13 21:09:31--- INFO --- "1" Type: count_agent_bookings
+2020-12-13 21:09:31--- INFO --- [{"id":"2","instructor_id":"581964","inst_name":"Su Siva","latitude":"37.7922841","longitude":"-122.4001490","booking_ids":null,"count":"0","bookings":false,"name":"Su Siva"},{"id":"3","instructor_id":"806826","inst_name":"Satyen R","latitude":"43.4014739","longitude":"-79.7138736","booking_ids":null,"count":"0","bookings":false,"name":"Satyen R"},{"id":"4","instructor_id":"860291","inst_name":"Samer Alotaibi","latitude":"43.7525432","longitude":"-79.4646769","booking_ids":null,"count":"0","bookings":false,"name":"Samer Alotaibi"},{"id":"5","instructor_id":"861266","inst_name":"Goberdhan Neil Michael","latitude":"37.7922841","longitude":"-122.4001490","booking_ids":null,"count":"0","bookings":false,"name":"Goberdhan Neil Michael"},{"id":"6","instructor_id":"861268","inst_name":"Mahalingam N","latitude":"43.5413470","longitude":"-79.7166538","booking_ids":null,"count":"1","bookings":[{"id":"10","student_id":"990077","tookan_id":"31225378","booking_date":"2021-02-25 10:00:00","instructor":"861268","job_id":"173403458","status":"1"}],"name":"Mahalingam N"}] Type: render_page
