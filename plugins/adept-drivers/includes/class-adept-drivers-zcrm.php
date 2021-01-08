@@ -87,9 +87,60 @@ class Adept_Drivers_ZCRM {
             'token_persistence_path' => $this->zcrm_token_storage
         );
         ZCRMRestClient::initialize( $this->configuration );
-        $this->generate_token_from_refresh();
+        $this->zinst = ZCRMRestClient::getInstance();
+        
+        // $this->generate_token_from_refresh();
         $this->logger = new Adept_Drivers_Logger('ZCRM');
+        $this->logger->Log_Information($this->zinst, __FUNCTION__);
+    }
 
+    /**
+     * Update record
+     * 
+     * @param Array $student data
+     * 
+     * @return Mix
+     */
+    public function update_student_records( $student, $type ){
+        if(is_array($student)){
+            $moduleIns = $this->zinst->getModuleInstance("Contacts"); // to get the instance of the module
+            $this->logger->Log_Information($student, __FUNCTION__);
+            $inventoryRecords = array();
+            /**
+             * Following methods are being used only by same Inventory only  *
+             */
+            $record = ZCRMRecord::getInstance("Contacts", $student['student_zoho_id']); // to get the instance of the record
+            $record->setFieldValue("First_Name", $student['fname']); // This function use to set FieldApiName and value similar to all other FieldApis and Custom field
+            $record->setFieldValue("Last_Name", $student['lname']);
+            $record->setFieldValue("Email", $student['email']);
+            
+            array_push($inventoryRecords, $record); // pushing the record to the array
+            
+            if($type !== 'details'){
+                //add address fields
+                $record->setFieldValue("Mailing_City", $student['city']); // This function use to set FieldApiName and value similar to all other FieldApis and Custom field
+                $record->setFieldValue("Mailing_State", $student['state']);
+                $record->setFieldValue("Mailing_Street", $student['address']);
+                $record->setFieldValue("Mailing_Zip", $student['zipcode']);
+                $record->setFieldValue("Mobile", $student['phone']);
+
+            }
+            
+            $trigger=array();//triggers to include
+            $responseIn = $moduleIns->updateRecords($inventoryRecords,$trigger); // updating the records.$trigger is optional , to update price book records$pricebookRecords can be used in the place of $inventoryRecords
+            $success = '';
+            foreach ($responseIn->getEntityResponses() as $responseIns) {
+                $success = $responseIns->getMessage();
+                $this->logger->Log_Information($responseIns->getMessage(), __FUNCTION__);
+                // echo "HTTP Status Code:" . $responseIn->getHttpStatusCode(); // To get http response code
+                // echo "Status:" . $responseIns->getStatus(); // To get response status
+                // echo "Message:" . $responseIns->getMessage(); // To get response message
+                // echo "Code:" . $responseIns->getCode(); // To get status code
+                // echo "Details:" . json_encode($responseIns->getDetails());
+            }
+            return $success;
+        }
+        return false;
     }
 
     /**
@@ -340,40 +391,43 @@ class Adept_Drivers_ZCRM {
             "currentUserEmail"=> $this->zcrm_email,
             'token_persistence_path' => $this->zcrm_token_storage
         );
+        ZCRMRestClient::initialize($this->configuration);
+        $oAuthClient = ZohoOAuth::getClientInstance();
+        $oAuthTokens = $oAuthClient->generateAccessToken($this->zcrm_temp_token);
+        // if( $this->zcrm_temp_token ){
 
-        if( $this->zcrm_temp_token ){
+        //     // $response = wp_remote_post($this->zcrm_uri . '?code=' . $this->zcrm_temp_token . '&redirect_uri=https://adept-drivers.samiscoding.com/crm-redirect&client_id=1000.HQGSJVRJKW06KMK3E0RNG5XRHHL6DW&client_secret=f223703e8ce8f03f7159c0907985ccd306f2f281fe&grant_type=authorization_code');
+        //     // if (is_wp_error($response)){
+        //     //     var_dump($response->get_error_message());
+        //     // }else{
+        //     //     $resp_json = json_decode($response['body'], true);
+        //     //     if(isset($resp_json['error'])){
+        //     //         update_option('ad_zcrm_expired_token', 'expired', true);
+        //     //     }else{
+        //     //         update_option('ad_zcrm_expired_token', 'active', true);
+        //     //         update_option('zcrm_access_token', $resp_json['access_token'], true);
+        //     //         update_option('zcrm_refresh_token', $resp_json['refresh_token'], true);
+        //     //     }
+        //     //     var_dump($response['body']);
+        //     // }
 
-            // $response = wp_remote_post($this->zcrm_uri . '?code=' . $this->zcrm_temp_token . '&redirect_uri=https://adept-drivers.samiscoding.com/crm-redirect&client_id=1000.HQGSJVRJKW06KMK3E0RNG5XRHHL6DW&client_secret=f223703e8ce8f03f7159c0907985ccd306f2f281fe&grant_type=authorization_code');
-            // if (is_wp_error($response)){
-            //     var_dump($response->get_error_message());
-            // }else{
-            //     $resp_json = json_decode($response['body'], true);
-            //     if(isset($resp_json['error'])){
-            //         update_option('ad_zcrm_expired_token', 'expired', true);
-            //     }else{
-            //         update_option('ad_zcrm_expired_token', 'active', true);
-            //         update_option('zcrm_access_token', $resp_json['access_token'], true);
-            //         update_option('zcrm_refresh_token', $resp_json['refresh_token'], true);
-            //     }
-            //     var_dump($response['body']);
-            // }
+        //     ZCRMRestClient::initialize( $this->configuration );
+        //     $oAuthClient = ZohoOAuth::getClientInstance(); 
+        //     try{
+        //         // $oAuthTokens = $oAuthClient->generateAccessToken($this->zcrm_temp_token);
+        //         $userIdentifier = $this->zcrm_email; 
+        //         $oAuthClient->generateAccessTokenFromRefreshToken($refreshToken,$userIdentifier);
+        //         // var_dump($oAuthClient);
+        //     }catch(Exception $e){
+        //         echo $e->getMessage();
+        //     }
 
-            ZCRMRestClient::initialize( $this->configuration );
-            $oAuthClient = ZohoOAuth::getClientInstance(); 
-            try{
-                $oAuthTokens = $oAuthClient->generateAccessToken($this->zcrm_temp_token);
-                $userIdentifier = $this->zcrm_email; 
-                // $oAuthClient->generateAccessTokenFromRefreshToken($refreshToken,$userIdentifier);
-                // var_dump($oAuthClient);
-            }catch(Exception $e){
-                echo $e->getMessage();
-            }
+        //     ZohoOAuth::initialize( $this->configuration );
 
-            ZohoOAuth::initialize( $this->configuration );
+        //     $this->zinst = ZCRMRestClient::getInstance();
+        //     $this->logger->Log_Information($this->zinst, __FUNCTION__);
 
-            $this->zinst = ZCRMRestClient::getInstance();
-
-        }
+        // }
 
 
         
@@ -409,9 +463,10 @@ class Adept_Drivers_ZCRM {
             'G2_Eligibility_Date'       => $record['student_g2el'],
             'Conditions_Eye_Glasses'    => $record['student_cond']
         );
-        $moduleIns = $this->zinst->getModuleInstance("Contacts");
+        $moduleIns = $this->zinst->getModuleInstance("Students");
         $records = array();
-        $record = ZCRMRecord::getInstance("Contacts",null);
+        $record = ZCRMRecord::getInstance("Students",null);
+        $this->logger->Log_Information($record, __FUNCTION__);
         array_push($records, $record);
         $responseIn = $moduleIns->createRecords($records);
         if($responseIn->getEntityResponses()[0]->getStatus() == 'success'){
@@ -428,24 +483,65 @@ class Adept_Drivers_ZCRM {
      * @since 1.0.0
      */
     public function get_zcrm_api_test( ){
-        $result = '';
-        try{
-        $restIns=ZCRMRestClient::getInstance();
-          $res=$restIns->getOrganizationDetails();
-          $orgIns=$res->getData();
-          $result .= $orgIns->getCompanyName();
-          $result .= $orgIns->getOrgId();
-          $result .= $orgIns->getCountryCode();
-          $result .= $orgIns->getCountry();
-          }
-          catch (ZCRMException $e)
-          {
-            $result .= $e->getCode();
-            $result .= $e->getExceptionDetails();
-            $result .= $e->getMessage();
-            $result .= $e->getTraceAsString();
-          }
-          return $result;
+        $moduleIns = ZCRMRestClient::getInstance()->getModuleInstance("Contacts"); // To get module instance
+        $response = $moduleIns->getAllFields(); // to get the field
+        $fields = $response->getData(); // to get the array of ZCRMField instances
+        $result = array();
+        foreach($fields as $field){
+            $result[] = $field->getApiName();
+        }
+        
+        // foreach ($fields as $field) { // each field
+        //     echo $field->getApiName(); // to get the field api name
+        //     echo $field->getLength(); // to get the length of the field value
+        //     echo $field->isVisible(); // to check if the field is visible
+        //     echo $field->getFieldLabel(); // to get the field label name
+        //     echo $field->getCreatedSource(); // to get the created source
+        //     echo $field->isMandatory(); // to check if the field is mandatory
+        //     echo $field->getSequenceNumber(); // to get fields sequence number
+        //     echo $field->isReadOnly(); // to check if the field is read only
+        //     echo $field->getDataType(); // to get the field data type
+        //     echo $field->getId(); // to get the field id
+        //     echo $field->isCustomField(); // to check if the field is custom field
+        //     echo $field->isBusinessCardSupported(); // to check if the field is BusinessCard Supported
+        //     echo $field->getDefaultValue(); // to get the default value of the field
+        //     $permissions = $field->getFieldLayoutPermissions(); // get field layout permissions.array of permissions list like CREATE,EDIT,VIEW,QUICK_CREATE etc.
+        //     foreach ($permissions as $permission) { // for each permission
+        //         echo $permission;
+        //     }
+        //     $lookupfield = $field->getLookupField(); // to get the field lookup information
+        //     if ($field->getDataType() == "Lookup") {
+        //         echo $lookupfield->getModule(); // to get the module name of lookupfield
+        //         echo $lookupfield->getDisplayLabel(); // to get the display label of the lookup field
+        //         echo $lookupfield->getId(); // to get the id of the lookup field
+        //     }
+        //     $picklistfieldvalues = $field->getPickListFieldValues(); // to get the pick list values of the field
+        //     foreach ($picklistfieldvalues as $picklistfieldvalue) {
+        //         echo $picklistfieldvalue->getDisplayValue(); // to get display value of the pick list
+        //         echo $picklistfieldvalue->getSequenceNumber(); // to get the sequence number of the pick list
+        //         echo $picklistfieldvalue->getActualValue(); // to get the actual value of the pick list
+        //         echo $picklistfieldvalue->getMaps();
+        //     }
+        //     echo $field->isUniqueField(); // to check if the field is unique
+        //     echo $field->isCaseSensitive(); // to check if the field is case sensitive
+        //     echo $field->isCurrencyField(); // to check if the field is currency field
+        //     echo $field->getPrecision(); // to get the precision of the field
+        //     echo $field->getRoundingOption(); // to get the rounding option of the field
+        //     echo $field->isFormulaField(); // to check if the field is a formula field
+        //     if ($field->isFormulaField()) {
+        //         echo $field->getFormulaReturnType(); // to get the return type of the formula
+        //         echo $field->getFormulaExpression(); // to get the formula expression
+        //     }
+        //     echo $field->isAutoNumberField(); // to check if the field is auto numbering
+        //     if ($field->isAutoNumberField()) {
+        //         echo $field->getPrefix(); // to get the prefix value
+        //         echo $field->getSuffix(); // to get the suffix value
+        //         echo $field->getStartNumber(); // to get the start number
+        //     }
+        //     echo $field->getDecimalPlace(); // to get the decimal place
+        //     echo $field->getJsonType(); // to get the json type of the field
+        // }
+          $this->logger->Log_Information($result, __FUNCTION__);
     }
 
     /**
@@ -463,7 +559,7 @@ class Adept_Drivers_ZCRM {
 
     public function ajax_generate_token(){
         try{
-            $this->init_zcrm_client();
+            // $this->init_zcrm_client();
             wp_send_json(array(
                 "success" => true,
                 "message" => "Successfully Generated Tokens"
@@ -483,7 +579,7 @@ class Adept_Drivers_ZCRM {
 	 */
 	public function run_all(){
 
-        add_action( 'wp_ajax_ad_zcrm_get_modules', array($this, 'ad_zcrm_get_modules'));
+        add_action( 'wp_ajax_ad_zcrm_get_modules', array($this, 'get_zcrm_api_test'));
         add_action( 'wp_ajax_generate_zcrm_token', array($this, 'ajax_generate_token'));
 
 	}

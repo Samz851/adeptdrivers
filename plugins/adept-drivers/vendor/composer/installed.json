@@ -84,7 +84,7 @@
         ]
     },
     {
-        "name": "zohocrm/php-sdk",
+        "name": "zohocrm/php-sdk-archive",
         "version": "2.2.1",
         "version_normalized": "2.2.1.0",
         "source": {

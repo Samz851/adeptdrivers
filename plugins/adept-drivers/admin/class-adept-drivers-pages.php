@@ -381,7 +381,7 @@ class Adept_Drivers_Pages {
         add_submenu_page( 'adept-drivers-plugin', __('Bookings', 'adept-drivers'), __('Bookings', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-bookings', [new Adept_Drivers_Public_Booking, 'render_page'] );
         add_submenu_page( 'adept-drivers-plugin', __('Students', 'adept-drivers'), __('Students', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-students', [new Adept_Drivers_Students, 'render_students_page'] );
         add_submenu_page( 'adept-drivers-plugin', __('Settings', 'adept-drivers'), __('Settings', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-settings', [$this, 'plugin_settings_page'] );
-        add_submenu_page( 'adept-drivers-plugin', __('Tests', 'adept-drivers'), __('Tests', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-test', [$this, 'plugin_tests_page'] );
+        add_submenu_page( 'adept-drivers-plugin', __('Query', 'adept-drivers'), __('Query', 'adept-drivers'), 'manage_options', 'adept-drivers-plugin-test', [$this, 'plugin_tests_page'] );
 
         // add_submenu_page('wp-quotes-plugin', __('Forms', 'wpquotes'), __('Forms', 'wpquotes'), 'manage_options', 'wp-quotes-plugin-forms');
 
@@ -393,7 +393,7 @@ class Adept_Drivers_Pages {
      * @return void
      */
     public function plugin_main_page(){
-        echo '<h1>Hello World</h1>';
+        include 'partials/adept-drivers-admin-dashboard.php';
     }
     
     /**

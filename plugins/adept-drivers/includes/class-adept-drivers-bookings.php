@@ -92,19 +92,22 @@
      * @return Bool
      */
     public function add_student_bookings( $bookingDate, $id ){
-        $date = new DateTime($bookingDate);
-        $booking = $date->format('Y-m-d H:i:s');
+        // $date = new DateTime($bookingDate);
+        // $booking = $date->format('Y-m-d H:i:s');
+        $dates = explode(' to ', $bookingDate);
+        $from_date = $dates[0];
+        $to_date = $dates[1];
         $agents = $this->get_student_agents($id);
-        $this->logger->Log_Information($agents, 'add_student_bookings');
+        // $this->logger->Log_Information($agents, 'add_student_bookings');
         if(!$agents){
             $this->logger->Log_Error($agents, 'add_student_bookings--');
             return false;
         }else{
-            $this->logger->Log_Information($id, 'get student');
+            // $this->logger->Log_Information($id, 'get student');
             $user = get_user_by('ID', $id);
             if($user){
                 $TOOKAN = new Adept_Drivers_Tookan();
-                $task = $TOOKAN->create_task($user, $booking, $agents);
+                $task = $TOOKAN->create_task($user, $from_date, $to_date, $agents);
                     $this->logger->Log_Information($task, 'add_student_bookings--task');
                     return $task;
             }
@@ -158,17 +161,23 @@
      * @return Bool
      */
     public function save_student_booking($bookingdata, $id){
-        $bookingDate = strtotime($bookingdata['booking_date']);
-        $bookingDate = date('Y-m-d h:i:s',$bookingDate);
+        $dates = explode(' to ', $bookingdata['booking_date']);
+        $from_date = $dates[0];
+        $to_date = $dates[1];
+        $from_booking_date = strtotime($from_date);
+        $from_booking_date = date('Y-m-d H:i:s', $from_booking_date);
+        $to_booking_date = strtotime($to_date);
+        $to_booking_date = date('Y-m-d H:i:s', $to_booking_date);
         $data = array(
             'student_id' => $bookingdata['student_id'],
             'tookan_id' => $bookingdata['tookan_id'],
-            'booking_date' => $bookingDate,
+            'booking_date' => $from_booking_date,
+            'booking_end' => $to_booking_date,
             'instructor' => $bookingdata['agent_id'],
             'job_id' => $bookingdata['job_id'],
             'status' => 1
         );
-        $this->logger->Log_Information($data, 'check data');
+        // $this->logger->Log_Information(array('string' => $bookingdata, 'dates' => $dates), 'check data');
         
         $insert = $this->db->insert($this->tablename, $data);
         if($insert){

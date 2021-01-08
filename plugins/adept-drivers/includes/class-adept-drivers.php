@@ -168,7 +168,7 @@ class Adept_Drivers {
 		$this->loader->add_action( 'rest_api_init', $ad_zcrm, 'zcrm_resapi');
 		$this->loader->add_action( 'admin_menu', $plugin_pages, 'add_admin_menu');
 		$this->loader->add_action( 'admin_init', $plugin_pages, 'register_wpq_settings');
-		$this->loader->add_action( 'admin_init', $plugin_pages, 'ad_remove_menu_pages');
+		$this->loader->add_action( 'admin_menu', $plugin_admin, 'ad_remove_menu_pages');
 		$this->loader->add_action( 'woocommerce_product_options_general_product_data', $plugin_admin, 'ad_wc_product_custom_fields');
 		$this->loader->add_action( 'woocommerce_process_product_meta', $plugin_admin, 'ad_wc_product_custom_fields_save');
 		$this->loader->add_action( 'woocommerce_register_form_start', $plugin_admin, 'ad_extra_register_fields');
@@ -196,6 +196,8 @@ class Adept_Drivers {
 		$this->loader->add_filter( 'woocommerce_locate_template', $plugin_public, 'ad_override_wc_template', 1, 3);
 		$this->loader->add_action( 'template_redirect', $plugin_public, 'ad_redirect_pre_checkout');
 		$this->loader->add_action( 'woocommerce_account_lessons-booking_endpoint', $plugin_public, 'booking_page_cb');
+		// $this->loader->add_action( 'woocommerce_save_account_details', $plugin_public, 'user_edited_profile');
+		$this->loader->add_action( 'woocommerce_customer_save_address', $plugin_public, 'user_edited_profile', 10, 2);
 	}
 
 	/**

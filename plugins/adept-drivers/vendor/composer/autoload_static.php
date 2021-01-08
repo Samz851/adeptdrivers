@@ -16,7 +16,7 @@ class ComposerStaticInitd49fdb7904759da37bb4f59975132b20
     public static $prefixDirsPsr4 = array (
         'zcrmsdk\\' => 
         array (
-            0 => __DIR__ . '/..' . '/zohocrm/php-sdk/src',
+            0 => __DIR__ . '/..' . '/zohocrm/php-sdk-archive/src',
         ),
     );
 

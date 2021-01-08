@@ -42,6 +42,7 @@ class Adept_Drivers_Activator {
 			student_id 	bigint(20) NOT NULL,
 			tookan_id bigint(12) NOT NULL,
 			booking_date datetime NULL,
+			booking_end datetime NULL,
 			instructor bigint(64) NULL,
 			job_id bigint(12) NULL,
 			status BOOLEAN,

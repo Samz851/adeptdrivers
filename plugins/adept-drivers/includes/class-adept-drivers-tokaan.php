@@ -100,7 +100,7 @@ class Adept_Drivers_Tookan
      * @since 1.0.0
      * 
      */
-    public function create_task($user, $datetime, $agents){
+    public function create_task($user, $pickupDatetime, $deliveryDatetime, $agents){
         $url = $this->api_url . 'create_task';
         $add_string = get_user_meta( $user->ID, 'billing_address_1', true ) . ', ' . get_user_meta( $user->ID, 'billing_city', true ) . ' ' . get_user_meta( $user->ID, 'billing_postcode', true ) . ', ' . get_user_meta( $user->ID, 'billing_state', true ) . ' Canada';
         $body = array(
@@ -109,8 +109,8 @@ class Adept_Drivers_Tookan
             'customer_phone' => get_user_meta( $user->ID, 'billing_phone', true ),
             'customer_address'=> $add_string,
             'job_description'=> 'Lesson',
-            'job_pickup_datetime'=> $datetime,
-            'job_delivery_datetime'=> $datetime,
+            'job_pickup_datetime'=> $pickupDatetime,
+            'job_delivery_datetime'=> $deliveryDatetime,
             'has_pickup'=> '0',
             'has_delivery'=> '0',
             'layout_type'=> '2',
@@ -438,9 +438,134 @@ class Adept_Drivers_Tookan
 
         if ( is_wp_error( $response ) ) {
             return false;
+            $this->logger->Log_Error($response['body'], __FUNCTION__);
+        } else {
+            $this->logger->Log_Information($response['body'], __FUNCTION__);
+            //Process response schedule to return raw timetable data
+            return true;
+        }
+    }
+
+    /**
+     * Get Agent Schedule
+     * 
+     * @param Int $agentID
+     * @param String $dateFrom
+     * @param String $dateTo
+     * 
+     * @return Array $schedule
+     */
+    public function get_agent_schedule( $agentID, $dateFrom, $dateTo ){
+        $url = $this->api_url . 'get_fleets_monthly_availability';
+
+
+        $body = array(
+            'api_key' => $this->api_key,
+            'fleet_id' => $agentID,
+            'start_date' => $dateFrom,
+            'end_date' => $dateTo
+
+        );
+
+        $response = wp_remote_post( $url, array(
+            'method'      => 'POST',
+            'timeout'     => 45,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array('Content-Type'=> 'application/json'),
+            'body'        => json_encode($body),
+            'cookies'     => array() 
+        ));
+        if ( is_wp_error( $response ) ) {
+            return false;
+        } else {
+            $response_body = json_decode($response['body'], true);
+            $this->logger->Log_Information($response_body['data']['detailed_slots'], __FUNCTION__);
+            $filtered = $this->filter_agent_schedule($response_body['data']['detailed_slots']);
+            // $this->logger->Log_Information($response_body, __FUNCTION__);
+            // foreach ($response_body['data']['fleet'] as $key => $value) {
+            //     # code...
+            // }
+            return $filtered;
+        }
+    }
+
+    /**
+     * Helper function to sort out the agent's timing
+     * 
+     * @param Array $schedule
+     * 
+     * @return Array $filtered Schedule
+     */
+    public function filter_agent_schedule( $schedule ){
+        // $this->logger->Log_Information(array('type' => gettype($schedule), '$schedule' => $schedule), __FUNCTION__);
+        $result = array();
+        if(is_array($schedule)){
+            foreach ($schedule as $date) {
+                $result[$date['date']] = array();
+                $available = false;
+                $hour = array();
+                foreach ($date['slots'] as $slot) {
+                    # code...
+                    
+                    // $this->logger->Log_Information($slot, '--Inside foreach');
+                    
+                    if($slot['available_status'] == 0){
+                        $hour = explode(':', $slot['slot_timming'])[0];
+                        $minutes = explode(':', $slot['slot_timming'])[1];
+                        if($minutes == '15' || $minutes == '00'){
+                            $result[$date['date']][$hour][0][] = $minutes;
+                        }else{
+                            $result[$date['date']][$hour][1][] = $minutes;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Update customer
+     * 
+     * @param Array $user
+     * @since 1.0.0
+     */
+    public function update_customer( $user ){
+        $url = $this->api_url . 'customer/edit';
+        $body = array(
+            'api_key'=> $this->api_key,
+            'user_type'=> 0,
+            'customer_id'=> $user['student_tookan_id'],
+            'name' => $user['fname'] . ' ' . $user['lname'],
+            'phone' => $user['phone'],
+            'email' => $user['email'],
+            'address' => $user['full_address'],
+            'latitude' => $user['latitude'],
+            'longitude' => $user['longitude']
+        );
+
+        $response = wp_remote_post( $url, array(
+            'method'      => 'POST',
+            'timeout'     => 45,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array('Content-Type'=> 'application/json'),
+            'body'        => json_encode($body),
+            'cookies'     => array()
+            )
+        );
+        if ( is_wp_error( $response ) ) {
+            return false;
         } else {
             return true;
         }
+        $this->logger->Log_Information($response, __FUNCTION__);
+
+
     }
 
     /**

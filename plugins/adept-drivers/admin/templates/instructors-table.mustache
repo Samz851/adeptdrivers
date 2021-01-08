@@ -1,6 +1,7 @@
 <div class="ad-students-page">
     <div class="ad-students-wrapper">
         <div class="ad-students-content">
+        <button id="get_agents">Refresh Agents</button>
                 <table class="wp-list-table widefat fixed striped">
                     <thead>
                         <td>Agent Name</td>
@@ -17,31 +18,15 @@
                                 <td> {{ count }} </td>
                                 <td>
                                     {{#bookings}}
-                                        <a href="#" id="view-bookings">View</a>
+                                        {{#.}}
+                                                <li>Student ID: {{student_id}} | Booking Date: {{booking_date}}
+                                        {{/.}}
                                     {{/bookings}}
                                 </td>
                             </tr>
-                            {{#bookings}}
-                            <tr>
-                                <td colspan=3>
-                                    <div class="instructor-bookings">
-                                        <ul>
-                                            {{#.}}
-                                                <li>Student ID: {{student_id}} | Booking Date: {{booking_date}}
-                                            {{/.}}
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
-                            {{/bookings}}
-                            {{/.}}
+                        {{/.}}
                         {{/agents}}
                     </tbody>
-                    <tfoot>
-                        {{#students_keys}}
-                        <td>{{.}}</td>
-                        {{/students_keys}}
-                    </tfoot>
                 </table>
             <div>
             </div>

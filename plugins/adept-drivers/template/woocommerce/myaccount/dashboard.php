@@ -39,12 +39,12 @@ $student = $student_inst->get_student_dashboard_obj(get_current_user_id());
 			<div class="ad-dash-unit-student-core">
 				<table>
 					<tr>
-						<td><?php echo $current_user->display_name ;?></td>
+						<td><?php echo $student['first_name'] . ' ' . $student['last_name'] ;?></td>
 						<td><?php echo $current_user->user_email;?></td>
 					</tr>
 					<tr>
 						<td>Total Bookings: <?php echo $student['total_bookings'];?></td>
-						<td>Remaining: <?php echo $student['remaining_booking']; ?></td>
+						<td>Remaining: <?php echo $student['student_car_sessions_count']; ?></td>
 					</tr>
 				</table>
 			</div>

@@ -73,7 +73,8 @@
 			student_dob : 'Date of Birth',
 			student_g2el : 'G2 Eligibilty Date',
 			student_lcissue : 'License Issue Date',
-			student_license : 'License Number'
+			student_license : 'License Number',
+			agent_name : 'Instructor'
 		}
 
 		/**
@@ -117,7 +118,7 @@
 					var empty = $('#empty-bookings');
 					for(var key in response.data.data){
 						if( key in fields){
-							template.append(`<div> ${fields[key]} : ${response.data.data[key]}`);
+							template.append(`<div> <span class="label">${fields[key]}:</span> ${response.data.data[key]}`);
 						}
 					};
 					if(response.data.bookings){
@@ -224,7 +225,48 @@
 			console.log($(e.target));
 			console.log($(e.target).next('.instructor-bookings'));
 			$(e.target).closest('tr').next('tr').find('.instructor-bookings').toggleClass('show');
-		})
+		});
+
+		/**
+		 * Delete user
+		 */
+		var deleteUserBtn = $('a.submitdelete');
+		deleteUserBtn.on('click', e => {
+			e.preventDefault();
+			var data = {
+				'action' : 'ad_delete_student',
+				'student_id' : $(e.target).attr('data-ad-user'),
+				'wpnonce' : $(e.target).attr('data-ad-nonce')
+			}
+			$.post(ajaxurl, data, response => {
+				if(response){
+					if(response.success){
+						alert('User Deleted, Reloading in 5s...');
+						setTimeout(() => {
+							location.reload();
+						}, 4000);
+					}else{
+						alert('Failed to delete user...')
+					}
+				}
+			})
+		});
+
+		var refreshAgentsBtn = $('button#get_agents');
+		refreshAgentsBtn.on('click', e => {
+			e.preventDefault();
+
+			var data = {
+				'action' : 'ad_get_agents'
+			}
+
+			$.post(ajaxurl, data, response => {
+				if(response){
+					$('.ad-get-agents').append(`<pre>${JSON.stringify(JSON.parse(response.message), null, 2)}</pre>`)
+					console.log(JSON.parse(response.message));
+				}
+			})
+		});
 
 	 })
 

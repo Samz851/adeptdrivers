@@ -27,6 +27,10 @@ div.adminpage input:not([type=submit]) {
     top: 0;
     bottom: 0;
     margin-left: -20px;
+    height: 100vh;
+}
+span.label {
+    color: black;
 }
 
 .ad-student-details.show {
@@ -37,7 +41,7 @@ div.adminpage input:not([type=submit]) {
     background: white;
     height: auto;
     width: 500px;
-    margin: 20% auto;
+    margin: 5% auto;
     padding: 25px;
     font-size: 2rem;
     position: relative;
@@ -119,4 +123,30 @@ div.instructor-bookings.show {
 
 div.instructor-bookings li {
     border-bottom: 1px solid #ddd;
+}
+.dashboard-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start
+}
+.dashboard-container > div {
+    background: #419DE6;
+    width: 40%;
+    min-height: 200px;
+    display: inline-block;
+    margin: 10px;
+}
+.dashboard-container > div > div{
+    display: block;
+    padding: 15px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+}
+div.dashboard-container div.card-label {
+    float: left;
+}
+div.dashboard-container div.card-content {
+    float: right;
 }

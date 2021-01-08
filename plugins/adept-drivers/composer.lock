@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "08afe6d249482e9e03cafb6fb6897992",
+    "content-hash": "d71bdee7ac98f6b79de525f5754f84e1",
     "packages": [
         {
             "name": "llagerlof/moodlerest",
@@ -87,7 +87,7 @@
             "time": "2019-11-23T21:40:31+00:00"
         },
         {
-            "name": "zohocrm/php-sdk",
+            "name": "zohocrm/php-sdk-archive",
             "version": "2.2.1",
             "source": {
                 "type": "git",

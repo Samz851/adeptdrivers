@@ -6,5 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'zcrmsdk\\' => array($vendorDir . '/zohocrm/php-sdk/src'),
+    'zcrmsdk\\' => array($vendorDir . '/zohocrm/php-sdk-archive/src'),
 );

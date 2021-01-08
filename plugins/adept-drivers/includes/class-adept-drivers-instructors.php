@@ -111,6 +111,7 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
             $distance = $this->get_distance($coordinates['lat'], $coordinates['long'], $agent['latitude'], $agent['longitude'] );
             $this->logger->Log_Information(array('distance' => $distance, 'coords' => $coordinates, '$agent' => $agent), __FUNCTION__);
             if($distance < $min){
+                $min = $distance;
                 $agent_id = $agent['instructor_id'];
             }
 
@@ -183,6 +184,7 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
         foreach ($this->get_all_instructors() as $key => $agent) {
             $agent['count'] = $this->count_agent_bookings($agent['instructor_id']);
             $agent['bookings'] = $agent['count'] > 0 ? $this->get_instructor_bookings($agent['instructor_id']) : false;
+            $aget['has_bookings'] = $agent['count'] > 0 ? true : false;
             $agent['name'] = $this->get_agent_details($agent['instructor_id'])['inst_name'];
             $agents[] = $agent;
         }

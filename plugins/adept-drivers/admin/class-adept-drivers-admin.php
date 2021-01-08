@@ -417,6 +417,21 @@ class Adept_Drivers_Admin {
 			remove_menu_page('themes.php'); // Appearance
 			remove_menu_page('tools.php'); // Tools
 			remove_menu_page('options-general.php'); // Settings
+			remove_menu_page('edit.php?post_type=cpt_courses');
+			remove_menu_page( 'edit.php?post_type=cpt_layouts' );
+			remove_menu_page( 'edit.php?post_type=cpt_services' );
+			remove_menu_page( 'edit.php?post_type=cpt_team' );
+			remove_menu_page( 'edit.php?post_type=cpt_testimonials' );
+			remove_menu_page( 'admin.php?page=wpcf7' );
+			remove_menu_page( 'edit.php?post_type=eb_course' );
+			remove_menu_page( 'admin.php?page=wc-admin&path=/analytics/overview' );
+			remove_menu_page( 'admin.php?page=wc-admin&path=/marketing' );
+			remove_menu_page( 'admin.php?page=vc-general' );
+			remove_menu_page( 'admin.php?page=wp-mail-smtp' );
+			remove_menu_page( 'admin.php?page=revslider' );
+			remove_menu_page( 'admin.php?page=essential-grid' );
+			remove_menu_page( 'admin.php?page=themepunch-google-fonts' );
+			remove_menu_page( 'essential-grid' );
 		}
 	}
 

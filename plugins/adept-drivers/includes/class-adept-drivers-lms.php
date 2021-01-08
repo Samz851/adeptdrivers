@@ -244,6 +244,28 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
     }
 
     /**
+     * Update student data
+     * 
+     * @param Array $user
+     * 
+     * @return Mix $user | False
+     */
+    public function update_user($user){
+
+        $update_user_fn = 'core_user_update_users';
+        $this->MoodleRest = new MoodleRest($this->domain . '/webservice/rest/server.php', $this->token);
+        $this->MoodleRest->request($update_user_fn, array('users' => array($user)), MoodleRest::METHOD_POST);
+        $result = $this->MoodleRest->getData();
+        if(isset($result['errorcode'])){
+            wp_mail( get_option( 'admin_email' ), 'LMS-FAILED REGISTRATION', 'Failed to update student ' . $user['firstname'] . ' ' . $user['lastname'] . ' With error message: ' . $result['debuginfo']);
+            $this->logger->Log_Error($result['debuginfo'], __FUNCTION__);
+            $result = false;
+        }
+        $this->logger->Log_Information($result, __FUNCTION__);
+        return $result;
+    }
+
+    /**
      * Function to run all admin hooks
      * 
      * @since 1.0.0
