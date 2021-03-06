@@ -9,6 +9,7 @@ return array(
     'Adept_Drivers' => $baseDir . '/includes/class-adept-drivers.php',
     'Adept_Drivers_Activator' => $baseDir . '/includes/class-adept-drivers-activator.php',
     'Adept_Drivers_Deactivator' => $baseDir . '/includes/class-adept-drivers-deactivator.php',
+    'Adept_Drivers_Emails' => $baseDir . '/includes/class-adept-emails.php',
     'Adept_Drivers_Geocoding' => $baseDir . '/includes/class-adept-drivers-geocoding.php',
     'Adept_Drivers_Instructors' => $baseDir . '/includes/class-adept-drivers-instructors.php',
     'Adept_Drivers_LMS' => $baseDir . '/includes/class-adept-drivers-lms.php',

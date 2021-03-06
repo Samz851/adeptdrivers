@@ -34,6 +34,7 @@ class ComposerStaticInitd49fdb7904759da37bb4f59975132b20
         'Adept_Drivers' => __DIR__ . '/../..' . '/includes/class-adept-drivers.php',
         'Adept_Drivers_Activator' => __DIR__ . '/../..' . '/includes/class-adept-drivers-activator.php',
         'Adept_Drivers_Deactivator' => __DIR__ . '/../..' . '/includes/class-adept-drivers-deactivator.php',
+        'Adept_Drivers_Emails' => __DIR__ . '/../..' . '/includes/class-adept-emails.php',
         'Adept_Drivers_Geocoding' => __DIR__ . '/../..' . '/includes/class-adept-drivers-geocoding.php',
         'Adept_Drivers_Instructors' => __DIR__ . '/../..' . '/includes/class-adept-drivers-instructors.php',
         'Adept_Drivers_LMS' => __DIR__ . '/../..' . '/includes/class-adept-drivers-lms.php',

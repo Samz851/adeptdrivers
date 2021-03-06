@@ -23,7 +23,7 @@
     $(document).ready(()=>{
         var disBtn = $('#display-key');
         var createBtn = $('#create-task');
-        var getAgentsBtn = $('#get-agents');
+        // var getAgentsBtn = $('#get-agents');
         var assignTaskBtn = $('#assign-task');
         var zcrmBtn = $('#ad-get-zcrm');
         var lmsBtn = $('#ad-create-lms-user');
@@ -62,23 +62,23 @@
             })
         })
 
-        /**
-         * Test Get Agents
-         */
-         getAgentsBtn.on('click', e => {
-             e.preventDefault();
+        // /**
+        //  * Test Get Agents
+        //  */
+        //  getAgentsBtn.on('click', e => {
+        //      e.preventDefault();
 
-             var data = {
-                 'action' : 'ad_get_agents'
-             }
+        //      var data = {
+        //          'action' : 'ad_get_agents'
+        //      }
 
-             $.post(ajaxurl, data, response => {
-                 if(response){
-                     $('.ad-get-agents').append(`<pre>${JSON.stringify(JSON.parse(response.message), null, 2)}</pre>`)
-                     console.log(JSON.parse(response.message));
-                 }
-             })
-         });
+        //      $.post(ajaxurl, data, response => {
+        //          if(response){
+        //              $('.ad-get-agents').append(`<pre>${JSON.stringify(JSON.parse(response.message), null, 2)}</pre>`)
+        //              console.log(JSON.parse(response.message));
+        //          }
+        //      })
+        //  });
 
          /**
           * Assign Task to Agent

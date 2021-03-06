@@ -56,9 +56,13 @@ div.add-bookingdate.show{
   opacity: 1;
   visibility: visible;
   margin: 0px;
-  background: #419DE6;
-  padding-top: 10px;
-  height: 60px;
+  background: #16449B;
+  padding: 10px;
+  height: 80px;
+  position: sticky;
+  left: 0px;
+  right: 0px;
+  display: block;
 }
 div.exam-input-container > * {
   display: inline-block;
@@ -77,6 +81,10 @@ button#submit-student-booking {
 }
 div.ad-booking-calendar table {
   width: 100%;
+}
+div.ad-booking-calendar table.wp-list-table thead tr td {
+  padding: 10px;
+  height: 50px;
 }
 
 div.inst-availability{
@@ -98,9 +106,25 @@ td.time-slot {
 td.time-slot.active{
   cursor: pointer;
 }
-/* table#agent-availability tbody td {
-  border: solid 1px grey;
+/* table#agent-availability {
+  margin-top: 60px;
 } */
+table#agent-availability tbody td {
+  font-size: 12px;
+}
+table#agent-availability > thead > tr > th:first-child {
+  min-width: 86px;
+}
+table#agent-availability > tbody > tr > td.row-date {
+  width: 86px;
+  height: 59px;
+  position: absolute;
+  border: 1px solid #ddd !important;
+}
+table#agent-availability > tbody > tr > td:not(.row-date) {
+  width: 64px;
+  height: 59px;
+}
 
 td.time-slot.active:hover {
   background-color: #e6e6e7;
@@ -115,14 +139,13 @@ td.time-slot.active.selected {
 }
 
 div.ad-booking-calendar table thead tr td {
-  background: #419de6;
+  background: #16449B;
   color: white;
   font-weight: 500;
 }
 
 .booking-confirmation {
   display: inline-block;
-  float: right;
   padding: 5px;
   border: 2px solid transparent;
   font-size: 1.5rem;
@@ -137,9 +160,14 @@ div.ad-booking-calendar table thead tr td {
     border-color: #6b0101;
 }
 
-div.dash-unit {
-  background: #F6F7FB
+div.ad-dash-unit {
+  padding: 30px 40px;
+  background: #f2f2f2;
+  box-model: border-box;
+  border: 3px solid transparent;
+  background-clip:padding-box;
 }
+
 .ad-dash-unit.col-md-6 {
   margin-bottom: 20px;
 }

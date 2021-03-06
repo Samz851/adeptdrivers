@@ -32,6 +32,13 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
      */
     public $Mustache;
 
+    /**
+     * List of updated/inserted agents
+     * 
+     * @access private
+     */
+    private $ids;
+
 
     public function __construct(){
         global $wpdb;
@@ -60,8 +67,27 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
         }else{
             $op = $this->db->insert($tablename, $data);
         }
-
         return !$op ? false : true;
+    }
+
+    /**
+     * Delete non-existing agent
+     * 
+     * @param Array $updated_ids
+     * 
+     * @return Bool
+     */
+    public function delete_agents($updated_ids){
+        $tablename = $this->db->prefix . 'ad_instructors';
+        $sql = "SELECT instructor_id FROM $tablename";
+        $ids = $this->db->get_results($sql, 'ARRAY_N');
+        foreach ($ids as $value) {
+            if(!in_array(intval($value[0]), $updated_ids)){
+                $this->db->delete($tablename, array('instructor_id' => $value[0]));
+            }
+        }
+        return true;
+
     }
 
     /**
@@ -69,12 +95,16 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
      * 
      * @return Array $instructors
      */
-    public function get_all_instructors(){
+    public function get_all_instructors($type = null){
+        
         $tablename = $this->db->prefix . 'ad_instructors';
 
         $sql = "SELECT * FROM $tablename";
-
+        if($type){
+            $sql = "SELECT instructor_id FROM $tablename WHERE type = '$type'";
+        }
         $instructors = $this->db->get_results($sql, 'ARRAY_A');
+        $this->logger->Log_Information(array($instructors, $type), __FUNCTION__);
 
         return $instructors;
     }
@@ -177,6 +207,52 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
     }
 
     /**
+     * Get list of agents names/ids
+     * 
+     * @return Array $agents
+     */
+    public function get_agents_names_id(){
+        $tablename = $this->db->prefix . 'ad_instructors';
+
+        $sql = "SELECT instructor_id, inst_name FROM $tablename";
+
+        $agents = $this->db->get_results($sql, 'ARRAY_A');
+        $this->logger->Log_Information($agents, __FUNCTION__);
+        wp_send_json(array(
+            'success' => true,
+            'data' => $agents
+        ), 200);
+
+
+    }
+
+    /**
+     * Update user Agent
+     * 
+     * @return WP_Json_Response
+     */
+    public function update_student_agent(){
+        $id = $_REQUEST['uid'];
+        $agentID = $_REQUEST['agentID'];
+
+        $student_agents = maybe_unserialize(get_user_meta( $id, 'ad_student_instructor', true ));
+        if(empty($student_agents)){
+            $student_agents = array($agentID);
+        }else{
+            array_unshift($student_agents, $agentID);
+        }
+        $this->logger->Log_Information(array('agent' => $agentID, 'studentmeta' => $student_agents), __FUNCTION__);
+
+        $update = update_user_meta( $id, 'ad_student_instructor',  $student_agents);
+
+        wp_send_json(array(
+            'success' => true,
+            'message' => $update,
+            'data' => $student_agents
+        ), 200);
+    }
+
+    /**
      * Render Instructors Page
      */
     public function render_page(){
@@ -192,4 +268,5 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
         $tpl = $this->Mustache->loadTemplate('instructors-table');
 		echo $tpl->render(array('agents' => $agents));
     }
+
  }

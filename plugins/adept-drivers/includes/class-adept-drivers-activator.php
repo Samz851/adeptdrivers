@@ -45,6 +45,8 @@ class Adept_Drivers_Activator {
 			booking_end datetime NULL,
 			instructor bigint(64) NULL,
 			job_id bigint(12) NULL,
+			tracking_url VARCHAR(255) NULL,
+			acknowledgment BOOLEAN NULL,
 			status BOOLEAN,
 			PRIMARY KEY (id)
 		) $charset_collate;";
@@ -60,6 +62,7 @@ class Adept_Drivers_Activator {
 			latitude decimal(11,7) NOT NULL,
 			longitude decimal(11,7) NOT NULL,
 			booking_ids varchar(255) NULL,
+			type varchar(25) NOT NULL,
 			PRIMARY KEY (id)
 		) $charset_collate;";
 			dbDelta( $sql );

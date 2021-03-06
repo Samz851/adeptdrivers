@@ -187,12 +187,20 @@ class Adept_Drivers_Public {
 		$tpl = $this->Mustache->loadTemplate('lessons-booking');
 		$this->logger->Log_Information($bookings, __FUNCTION__);
 		$in_car_sessions = get_user_meta( $student_id, 'student_car_sessions_count', true );
-		
+		$exam_date = get_user_meta($student_id, 'Examination_Date', true);
+		$user['has_emergency'] = false;
+		if($exam_date){
+			if(strtotime($exam_date) < strtotime('+7 day')){
+				$user['has_emergency'] = true;
+			}
+		}
+		$this->logger->Log_Information($user, __FUNCTION__);
 		echo $tpl->render(array(
 			'bookings' => $bookings,
 			'ID' => $student_id,
-			// 'bookingsAllowed' => $in_car_sessions ? true : false
-			'bookingsAllowed' => true
+			'bookingsAllowed' => true,
+			'hasExam' => $user['has_emergency']
+			// 'bookingsAllowed' => true
 		));
 	}
 
@@ -204,9 +212,19 @@ class Adept_Drivers_Public {
 	function get_student_data_localize(){
 		$id = get_current_user_id();
 		$user = array();
+		$products = get_user_meta( $id, 'student_products', true);
 		$user['has_lms'] = get_user_meta( $id, 'has_lms', true );
 		$user['car_sessions'] = get_user_meta( $id, 'student_car_sessions_count', true );
-		$user['booking_counter'] = '0';
+		$user['booking_counter'] = get_post_meta($products[0], 'lesson_duration', true);
+		// Check emergency exam;
+		$exam_date = get_user_meta($id, 'Examination_Date', true);
+		$user['has_emergency'] = 'false';
+		if($exam_date){
+			if(strtotime($exam_date) < strtotime('+7 day')){
+				$user['has_emergency'] = 'true';
+			}
+		}
+		 
 		return $user;
 
 	}

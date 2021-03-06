@@ -77,6 +77,7 @@ class Adept_Drivers_Admin {
 			wp_enqueue_style( 'bootstrap-css' , plugin_dir_url(__FILE__) . 'css/bootstrap.min.css', array(), $this->version, 'all');
 		}
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/adept-drivers-admin.css', array(), $this->version, 'all' );
+		wp_enqueue_style( 'ad-fa', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css', array(), $this->version, 'all');
 
 
 	}
@@ -104,6 +105,9 @@ class Adept_Drivers_Admin {
 		wp_enqueue_script( 'bootstrap-js' , plugin_dir_url(__FILE__) . 'js/bootstrap.min.js', array('moments-js'), $this->version, true);
 		wp_enqueue_script ( 'bootstrap-datepicker-js' , plugin_dir_url(__FILE__) . 'js/bootstrap-datepicker.min.js', array('bootstrap-js'), $this->version, true);
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/adept-drivers-admin.js', array( 'jquery', 'bootstrap-datepicker-js' ), $this->version, false );
+		if($_GET['post_type'] == 'product'){
+			wp_enqueue_script( 'ad-z-sync', plugin_dir_url( __FILE__ ) . 'js/adept-drivers-sync.js', array( 'jquery'), $this->version, false );
+		}
 
 
 	}
@@ -160,8 +164,22 @@ class Adept_Drivers_Admin {
 			array( 
 				'id'            => 'includes_bde', 
 				'wrapper_class' => 'ad-prod-meta', 
-				'label'         => __('Includes BDE Course', 'adept-adapters' ), 
-				'description'   => __( 'Includes a BDE course with this product', 'adept-drivers' ) 
+				'label'         => __('Includes LMS Course', 'adept-adapters' ), 
+				'description'   => __( 'Includes an LMS course with this product', 'adept-drivers' ) 
+				)
+			);
+		woocommerce_wp_text_input( 
+			array( 
+				'id'            => 'lesson_duration', 
+				'wrapper_class' => 'ad-prod-meta', 
+				'placeholder' => 'Intervals of 30 mins',
+				'label'         => __('In Car Session Duration (30min Intervals)', 'adept-adapters' ), 
+				'description'   => __( 'How long is each lesson in x 30min.', 'adept-drivers' ),
+				'type'  => 'number',
+				'custom_attributes' => array(
+					'min'	=> '0',
+					'max' => 6
+				)
 				)
 			);
         echo '</div>';
@@ -177,7 +195,7 @@ class Adept_Drivers_Admin {
 		// $metas = ['lab_report', 'faq', 'why_buy', 'suggested_use', 'ingredients', 'product_facts', 'amount_cbd', 'total_cbd', 'size_volume'];
 		// $wysiwyg_keys = ['faq', 'ingredients', 'why_buy'];
 		foreach ($fields as $key => $value) {
-			if( $key == 'in_car_sessions' || $key == 'includes_bde'){
+			if( $key == 'in_car_sessions' || $key == 'includes_bde' || $key == 'lesson_duration'){
 				update_post_meta($post_id, $key, $value);
 			}
 		}

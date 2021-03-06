@@ -97,7 +97,7 @@ $student = $student_inst->get_student_dashboard_obj(get_current_user_id());
 						<td><?php echo $student['student_dob']; ?></td>
 					</tr>
 					<tr>
-						<td colspan="2"><a href="/user-account/edit-address/billing/" id="edit-address">Edit</a></td>
+						<td colspan="2"><a href="/my-account/edit-address/billing/" id="edit-address">Edit</a></td>
 					</tr>
 				</table>
 			</div>

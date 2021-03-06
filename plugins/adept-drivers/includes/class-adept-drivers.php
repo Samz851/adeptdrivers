@@ -153,11 +153,13 @@ class Adept_Drivers {
 
 		$plugin_admin = new Adept_Drivers_Admin( $this->get_plugin_name(), $this->get_version() );
 		require_once plugin_dir_path( __FILE__  ) . '/class-adept-drivers-zcrm.php';
-		$ad_zcrm = new Adept_Drivers_ZCRM;
+		$ad_zcrm = new Adept_Drivers_ZCRM();
 		require_once plugin_dir_path(__FILE__) . '../admin/class-adept-drivers-pages.php';
-		$plugin_pages = new Adept_Drivers_Pages;
+		$plugin_pages = new Adept_Drivers_Pages();
 		require_once plugin_dir_path( __FILE__ ) . '/class-adept-drivers-lms.php';
-		$ad_lms = new Adept_Drivers_LMS;
+		$ad_lms = new Adept_Drivers_LMS();
+		$emailer = new Adept_Drivers_Emails();
+		$instructors = new Adept_Drivers_Instructors();
 		$booking = 'booking';
 		// add_action( 'rest_api_init', array($ad_zcrm, 'zcrm_resapi'));
 		$this->loader->add_action( 'init', $plugin_admin, 'ad_booking_endpoint');
@@ -177,7 +179,12 @@ class Adept_Drivers {
 		$this->loader->add_action( 'woocommerce_payment_complete', $plugin_admin, 'activate_user_after_purchase');
 		$this->loader->add_action( 'woocommerce_order_status_completed', $plugin_admin, 'activate_user_after_purchase');
 		$this->loader->add_filter( 'users_list_table_query_args', $plugin_admin, 'skip_inactive_user_query');
-
+		$this->loader->add_action( 'wp_mail_failed', $emailer, 'log_mailer_errors',10, 1 );
+		$this->loader->add_action( 'wp_ajax_ad_get_all_agents_name_id', $instructors, 'get_agents_names_id');
+		$this->loader->add_action( 'wp_ajax_ad_update_student_agent', $instructors, 'update_student_agent');
+		$this->loader->add_filter( 'manage_edit-product_columns', $ad_zcrm, 'product_sync_column', 10, 3 );
+		$this->loader->add_action( 'manage_posts_custom_column', $ad_zcrm, 'product_sync_action', 10, 3);
+		$this->loader->add_action( 'wp_ajax_ad_sync_z_product', $ad_zcrm, 'product_sync');
 	}
 
 	/**

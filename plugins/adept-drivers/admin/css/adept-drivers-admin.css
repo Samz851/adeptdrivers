@@ -27,7 +27,11 @@ div.adminpage input:not([type=submit]) {
     top: 0;
     bottom: 0;
     margin-left: -20px;
-    height: 100vh;
+    height: 100%;
+}
+
+#agent_data > *{
+    margin: 0px 10px;
 }
 span.label {
     color: black;

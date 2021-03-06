@@ -31,12 +31,12 @@
 
 	 $(document).ready(function(){
 		 console.log(user_record);
+		 var savedView;
 		/**
 		 * Ajax to delete booking
 		 * @param {Event} e 
 		 */
 		function delete_booking(e){
-			console.log(e.target);
 			e.preventDefault();
 			var studentID = $('div.ad-booking-page').attr('data-student-id');
 			var booking_id = $(e.target).attr('data-ad-booking');
@@ -49,32 +49,55 @@
 			$.post(ajaxurl.ajax_url, data, response => {
 				if(response.success){
 					$(e.target).closest('tr').remove();
+					location.reload();
 				}
 			})
 		}
-		function sortObject(obj) {
-			return Object.keys(obj).sort((a,b) => {return parseInt(b) - parseInt(a)}).reduce(function (result, key) {
-				result[key] = obj[key];
-				return result;
-			}, {});
+
+		$('#exam-booking').live('change', toggle_exam_table);
+		/**
+		 * Event Handler for Exam view
+		 * @param {Event} e 
+		 *  
+		 */
+		function toggle_exam_table(e){
+			let exam = $(e.target).prop('checked');
+			let table = $('table#agent-availability');
+			if(!table.hasClass('exam-view')){
+				savedView = table.clone(true);
+				table.find('.time-slot').removeClass('block');
+				table.addClass('exam-view')
+			}else{
+				table.fadeOut(100, function(){
+					table.replaceWith(savedView);
+					table.fadeIn(100);
+				})
+				
+			}
 		}
+
 		/**
 		 * Ajax to get agent schedule
 		 * @param {Object} data
 		 */
 		function get_agent_schedule( data, counter ){
-			console.log(counter);
 			var agentTable = $('table#agent-availability');
 			$.post(ajaxurl.ajax_url, data, response => {
 				if(response.success){
-					var headerGenerated = false;
-					var headerData = [];
+					var times = ['08:00', '08:15', '08:30', '08:45', '09:00', '09:15', '09:30', '09:45', '10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45', '12:00', '12:15', '12:30', '12:45', '13:00', '13:15', '13:30', '13:45', '14:00', '14:15', '14:30', '14:45', '15:00', '15:15', '15:30', '15:45', '16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '18:00', '18:15', '18:30', '18:45', '19:00', '19:15', '19:30', '19:45', '20:00'];
+					var headerData;
 					var tableHead = agentTable.find('thead').find('tr');
 					var tableBody = agentTable.find('tbody');
 					if(!tableHead.is(':empty')) tableHead.empty();
 					if(!tableBody.is(':empty')) tableBody.empty();
 					tableHead.append('<th></th>');
 					console.log(response.dates);
+					var datesData;
+					for (let index = 0; index < times.length; index++) {
+						const element = times[index];
+						tableHead.append(`<th>${times[index]}</th>`);
+						
+					}
 					for(const date in response.dates){
 						//Generate days rows
 						var day = moment(date, 'YYYY-MM-DD').format('dddd');
@@ -82,54 +105,36 @@
 						bodyRow.append(`<td class="row-date">${day} <span>${date}</span></td>`);
 						
 						tableBody.append(bodyRow);
-						var index = 0;
-						response.dates[date] = sortObject(response.dates[date]);
-						for (const time in response.dates[date]){
-							console.log(Object.keys(response.dates[date])[0])
-							console.log(response.dates);
-							console.log(time);
-							if(response.dates[date][time].length > 1){
-								for( const slot in response.dates[date][time]){
-									if(!headerGenerated){
-										headerData.push(`${time}:${response.dates[date][time][slot][0]}`);
-										tableHead.append(`<th>${time}:${response.dates[date][time][slot][0]}</th>`);
-									}
-									var emptyAppended = false
-									if(headerData.indexOf(`${time}:${response.dates[date][time][slot][0]}`) !== index){
-										if(!emptyAppended){
-											var initIndex = index;
-											for(let i = initIndex; i < headerData.indexOf(`${time}:${response.dates[date][time][slot][0]}`); i++){
-												var td = $(`<td class="time-slot active" data-slot="${headerData[i]}"></td>`);
-												td.on('click', time_slot_clicked);
-												bodyRow.append(td);
-												// index++;
-											}
-											emptyAppended = true;
-										}else{
-											var td = $(`<td class="time-slot active block" data-slot="${time}:${response.dates[date][time][slot][0]}"></td>`);
-											// index++;
 
-										}
-										
-
+						for (let index = 0; index < times.length; index++) {
+							const element = times[index];
+							let hour = element.split(':')[0];
+							let minutes = element.split(':')[1];
+							
+							if(response.dates[date][hour]){
+								console.log(hour);
+								if(response.dates[date][hour].length){
+									if(response.dates[date][hour].includes(minutes)||response.dates[date][hour].includes(minutes)){
+										var td = $(`<td class="time-slot active" data-slot="${hour}:${minutes}"></td>`);
 										td.on('click', time_slot_clicked);
-										bodyRow.append(td);
-										index++;
 									}else{
-										var td = $(`<td class="time-slot active" data-slot="${time}:${response.dates[date][time][slot][0]}"></td>`);
-										td.on('click', time_slot_clicked);
-										bodyRow.append(td);
+										var td = $(`<td class="time-slot active block" data-slot="${hour}:${minutes}"></td>`);
 									}
-									index++;
-
+								}else{
+									var td = $(`<td class="time-slot active block" data-slot="${hour}:${minutes}"></td>`);
 								}
+
+							}else{
+								var td = $(`<td class="time-slot active block" data-slot="${hour}:${minutes}"></td>`);
+
 							}
+							bodyRow.append(td);
+
 						}
-						headerGenerated = true;
+					}
 
-					};
-					highlight_student_bookings();
-
+				}else{
+					$('div.booking-confirmation').html(`<span>No Agent Available</span> <span> Please give us a call to assign one to you</span>`).addClass('fail');
 				}
 			})
 		}
@@ -146,51 +151,23 @@
 			$(e.target).closest('tr').siblings().find('td.time-slot.selected').each(function(){
 				$(this).removeClass('selected');
 			})
+			var end;
+			if(exam) {
+			 end = 6;
+			}else{
+				end = user_record.booking_counter == '' ? 2 : user_record.booking_counter * 2 ;
+			}
+			var slot = $(e.target).nextAll('td').andSelf().slice(0, end--);
+			var checkthis = slot.hasClass('block');
 			if(!remove){
-				if((!$(e.target).next().hasClass('selected') || !$(e.target).prev().hasClass('selected')) && !$(e.target).next().hasClass('block')){
-					if(exam){
-						$(e.target).toggleClass('selected');
-						$(e.target).next().next().next().next().next().toggleClass('selected');
-						$(e.target).next().next().next().next().toggleClass('selected');
-						$(e.target).next().next().next().toggleClass('selected');
-						$(e.target).next().next().toggleClass('selected');
-						$(e.target).next().toggleClass('selected');
-					}else{
-						$(e.target).toggleClass('selected');
-						$(e.target).next().next().toggleClass('selected');
-						$(e.target).next().toggleClass('selected');
-					}
-					var end = exam ? $(e.target).next().next().next().next().next() : $(e.target).next().next();
-					var value = `${$(e.target).closest('tr').attr('data-date')} ${$(e.target).attr('data-slot')} to ${$(e.target).closest('tr').attr('data-date')} ${end.next().attr('data-slot')}`;
+				if(!slot.hasClass('block')){
+					slot.toggleClass('selected');
+					var value = `${$(e.target).closest('tr').attr('data-date')} ${$(e.target).attr('data-slot')} to ${$(e.target).closest('tr').attr('data-date')} ${slot.last().next().attr('data-slot')}`;
 					$('#booking-date').val(value);
 				}
 			}else{
 				$('#booking-date').val();
 			}
-			console.log($('#booking-date').val());
-
-		}
-
-		/**
-		 * Function to highlight student bookings on timetable
-		 */
-		function highlight_student_bookings(){
-			var studentID = $('div.ad-booking-page').attr('data-student-id');
-			var student_bookings = [];
-			$('tbody.the-list').find('tr').each(function(){
-				student_bookings.push($(this).find('td').first().html());
-			});
-			student_bookings.forEach(function(string, index){
-				var string = string.split(' to ')[0];
-				var date = string.split(' ')[0];
-				var slot = string.split(' ')[1].substring(0, 5);
-
-				var row = $('#agent-availability > tbody ').find(`tr[data-date='${date}']`);
-				var firstSlot = row.find(`td[data-slot='${slot}']`);
-				firstSlot.addClass('block');
-				firstSlot.next().addClass('block');
-				firstSlot.next().next().addClass('block');
-			})
 
 		}
 
@@ -228,6 +205,7 @@
 		var submitAddBookingBtn = $('button#submit-student-booking');
 
 		submitAddBookingBtn.on('click', e => {
+			var exam = $('#exam-booking').prop('checked');
 			var studentID = $('div.ad-booking-page').attr('data-student-id');
 			var bookingDateInput = $('#booking-date');
 
@@ -237,7 +215,8 @@
 				var data = {
 					'action' : 'ad_add_student_booking',
 					'student_id' : studentID,
-					'booking_date' : bookingDateInput.val()
+					'booking_date' : bookingDateInput.val(),
+					'exam_booking' : exam
 				}
 
 				$.post(ajaxurl.ajax_url, data, response => {
@@ -257,6 +236,9 @@
 							status.append(deleteTag);
 							row.append(status);
 							deleteTag.on('click', delete_booking);
+
+							//Show new booking as blocked
+							$('table#agent-availability tbody').find('td.selected').removeClass('selected').addClass('block').off();
 
 							table.append(row);
 
@@ -300,7 +282,6 @@
 			})
 			.bind('datepicker-change',function(event,obj){
 				/* This event will be triggered when second date is selected */
-				console.log(obj);
 				// obj will be something like this:
 				// {
 				// 		date1: (Date object of the earlier date),
@@ -311,7 +292,6 @@
 				let end = moment(obj.date2);
 				get_agent_schedule( { action : 'ad_get_agent_schedule', date_range : obj.value}, end.diff(from, 'days')+1 );
 			})
-			console.log(moment().format('YYYY-MM-DD'));
 		}
 		
 	 });

@@ -100,7 +100,7 @@ class Adept_Drivers_Tookan
      * @since 1.0.0
      * 
      */
-    public function create_task($user, $pickupDatetime, $deliveryDatetime, $agents){
+    public function create_task($user, $pickupDatetime, $deliveryDatetime, $agents, $exam){
         $url = $this->api_url . 'create_task';
         $add_string = get_user_meta( $user->ID, 'billing_address_1', true ) . ', ' . get_user_meta( $user->ID, 'billing_city', true ) . ' ' . get_user_meta( $user->ID, 'billing_postcode', true ) . ', ' . get_user_meta( $user->ID, 'billing_state', true ) . ' Canada';
         $body = array(
@@ -117,8 +117,7 @@ class Adept_Drivers_Tookan
             'tracking_link'=> 1,
             'timezone'=> '-330',
             'api_key'=> $this->api_key,
-            'team_id'=> '',
-            'auto_assignment'=> '0',
+            'auto_assignment'=> 1,
             'fleet_id'=> $agents[0],
             'ref_images'=> [
                 'http=>//tookanapp.com/wp-content/uploads/2015/11/logo_dark.png',
@@ -128,6 +127,10 @@ class Adept_Drivers_Tookan
             'tags'=> '',
             'geofence'=> 0
         );
+        if($exam){
+            $body['geofence'] = 1;
+            unset($body['fleet_id']);
+        }
         $response = wp_remote_post( $url, array(
             'method'      => 'POST',
             'timeout'     => 45,
@@ -140,7 +143,7 @@ class Adept_Drivers_Tookan
             )
         );
         $this->logger->Log_Information(gettype($response['body']['data']), 'Add Task Response--TYPE');
-        $this->logger->Log_Information($response['body']['data'], 'Add Task Response');
+        $this->logger->Log_Information(json_decode($response['body'], true), 'Add Task Response');
         if ( is_wp_error( $response )  ) {
             return array(
                 "success" => false,
@@ -157,7 +160,8 @@ class Adept_Drivers_Tookan
                 return array(
                     "success" => true,
                     'agent_id' => $agents[0],
-                    'job_id' => $response_body['data']['job_id']
+                    'job_id' => $response_body['data']['job_id'],
+                    'tracking_url' => $response_body['data']['tracking_link']
                 );
             }
 
@@ -166,18 +170,17 @@ class Adept_Drivers_Tookan
     }
 
     /**
-     * Get All Agents Available
+     * Autoassign Task
      * 
      * @since 1.0.0
      */
-    public function get_all_agents(){
-        $url = $this->api_url . 'get_all_fleets';
+    public function autoassign_task(){
+        $task = $_REQUEST['booking_id'];
+        $url = $this->api_url . 're_autoassign_task';
         $body = array(
-            'api_key'=> $this->api_key,
-            'status'=> 0,
-            'fleet_type'=> 1
+            'api_key' => $this->api_key,
+            'job_id' => $task
         );
-
         $response = wp_remote_post( $url, array(
             'method'      => 'POST',
             'timeout'     => 45,
@@ -189,32 +192,59 @@ class Adept_Drivers_Tookan
             'cookies'     => array()
             )
         );
-        if ( is_wp_error( $response ) ) {
-            wp_send_json(array(
-                "success" => false,
-                "message" => $response->get_error_message()
-            ), 400);
-        } else {
-            //Save agents in DB
-            $instructor = new Adept_Drivers_Instructors();
 
-            $response_body = json_decode($response['body'], true);
-            foreach ($response_body['data'] as $agent) {
-                $this->logger->Log_Information($agent, __FUNCTION__);
-                $instructor->insert_update_instructor(array(
-                    'instructor_id' => $agent['fleet_id'],
-                    'inst_name' => $agent['name'],
-                    'latitude' => $agent['latitude'],
-                    'longitude' => $agent['longitude']
-                ));
-            }
-            wp_send_json(array(
-                "success" => true,
-                "message" => $response['body'],
-                'key' => $this->api_key,
-                'body' => $body
-            ));
+        $this->logger->Log_Information($response, __FUNCTION__);
+        
+    }
+
+    /**
+     * Get All Agents Available
+     * 
+     * @since 1.0.0
+     */
+    public function get_all_agents(){
+        $agents = array();
+        // Get first the Captive Agents
+        $captive = $this->get_all_captive_agents();
+        $this->logger->Log_Information($captive, 'THIS IS CAPTIVE INFO');
+        if($captive['success']){
+            $agents = array_map(function($a){$a['type'] = 'captive'; return $a;}, $captive['data']);
+        }else{
+            wp_send_json($captive, 400);
         }
+
+        //Get Freelancer Agents
+        $freelance = $this->get_all_freelancer_agents();
+        if($freelance['success']){
+            $freelance['data'] = array_map(function($a){$a['type'] = 'freelance'; return $a;}, $freelance['data']);
+            $agents = array_merge($agents, $freelance['data']);
+        }else{
+            wp_send_json($freelance, 400); 
+        }
+
+        //Save agents in DB
+        $instructor = new Adept_Drivers_Instructors();
+        $ids = array();
+        $this->logger->Log_Information($agents, __FUNCTION__);
+        foreach ($agents as $agent) {
+            $agent_details = $this->get_agent_details($agent['fleet_id']);
+            if(!$agent_details){
+                return $this->logger->Log_Error($agent, '--ERROR--' . __FUNCTION__);
+            }
+            $updated = $instructor->insert_update_instructor(array(
+                'instructor_id' => $agent['fleet_id'],
+                'inst_name' => $agent['name'],
+                'latitude' => $agent_details['home_latitude'],
+                'longitude' => $agent_details['home_longitude'],
+                'type' => $agent['type']
+            ));
+                array_push($ids, $agent['fleet_id']);
+        }
+        // Delete non existing agents
+        $instructor->delete_agents($ids);
+        wp_send_json(array(
+            "success" => true
+        ));
 
 
     }
@@ -363,10 +393,11 @@ class Adept_Drivers_Tookan
 
         $body = array(
             'api_key'=> $this->api_key,
-            'fleed_id' => $agentID
+            'fleet_id' => $agentID,
+            'include_home_address' => 1
 
         );
-        $this->logger->Log_Information($body, __FUNCTION__);
+        $this->logger->Log_Information(array('ID' => $agentID, 'body' => $body), __FUNCTION__);
         $response = wp_remote_post( $url, array(
             'method'      => 'POST',
             'timeout'     => 45,
@@ -390,8 +421,8 @@ class Adept_Drivers_Tookan
             // ));
             $this->logger->Log_Information($response['body'], __FUNCTION__);
             $this->logger->Log_Type(json_encode($response['body']), __FUNCTION__);
-
-            return json_decode($response['body'], true);
+            $response_body = json_decode($response['body'], true);
+            return $response_body['data']['fleet_details'][0];
         }
     }
 
@@ -514,17 +545,41 @@ class Adept_Drivers_Tookan
                     if($slot['available_status'] == 0){
                         $hour = explode(':', $slot['slot_timming'])[0];
                         $minutes = explode(':', $slot['slot_timming'])[1];
-                        if($minutes == '15' || $minutes == '00'){
-                            $result[$date['date']][$hour][0][] = $minutes;
-                        }else{
-                            $result[$date['date']][$hour][1][] = $minutes;
-                        }
+                        $result[$date['date']][$hour][] = $minutes;
+                        // if($minutes == '15' || $minutes == '00'){
+                        //     $result[$date['date']][$hour][0][] = $minutes;
+                        // }else{
+                        //     $result[$date['date']][$hour][1][] = $minutes;
+                        // }
                     }
                 }
             }
         }
 
         return $result;
+    }
+
+    /**
+     * Check Booking Status and update
+     * @return Void
+     */
+    public function update_booking_status(){
+        $bookings = $this->get_unacknowledged_tasks();
+        $this->logger->Log_Information($bookings, __FUNCTION__);
+    }
+
+    /**
+     * Get Unacknowledged Tasks
+     * @return Array $bookings Job Ids
+     */
+    public function get_unacknowledged_tasks(){
+        $bookings = array(); // Get only bookings for exams 
+        $sql = "SELECT * FROM $this->tablename WHERE acknowledgment IS NULL AND instructor = 0";
+        $results = $this->db->get_results($sql, "ARRAY_A");
+        foreach ($results as $key => $value) {
+            array_push($bookings, $value);
+        }
+        return $bookings;
     }
 
     /**
@@ -569,6 +624,72 @@ class Adept_Drivers_Tookan
     }
 
     /**
+     * Get All Captive agents
+     * 
+     * @since 1.0.0
+     */
+    public function get_all_captive_agents(){
+        $url = $this->api_url . 'get_all_fleets';
+        $body = array(
+            'api_key'=> $this->api_key,
+            'status'=> 0,
+            'fleet_type'=> 1
+        );
+
+        $response = wp_remote_post( $url, array(
+            'method'      => 'POST',
+            'timeout'     => 45,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array('Content-Type'=> 'application/json'),
+            'body'        => json_encode($body),
+            'cookies'     => array()
+            )
+        );
+
+        if(is_wp_error( $response )){
+            return array('success' => false, 'message' => 'Failed to fetch Captive Agents', 'error' => $response->get_error_message());
+        }else{
+            $result = json_decode($response['body'], true);
+            return array('success' => true, 'data' => $result['data']);
+        }
+    }
+
+    /**
+     * Get All Freelancer agents
+     * 
+     * @since 1.0.0
+     */
+    public function get_all_freelancer_agents(){
+        $url = $this->api_url . 'get_all_fleets';
+        $body = array(
+            'api_key'=> $this->api_key,
+            'status'=> 0,
+            'fleet_type'=> 2
+        );
+
+        $response = wp_remote_post( $url, array(
+            'method'      => 'POST',
+            'timeout'     => 45,
+            'redirection' => 5,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array('Content-Type'=> 'application/json'),
+            'body'        => json_encode($body),
+            'cookies'     => array()
+            )
+        );
+
+        if(is_wp_error( $response )){
+            return array('success' => false, 'message' => 'Failed to fetch Freelance Agents', 'error' => $response->get_error_message());
+        }else{
+            $result = json_decode($response['body'], true);
+            return array('success' => true, 'data' => $result['data']);
+        }
+    }
+
+    /**
 	 * Function to run all admin hooks
 	 * 
 	 * @since 1.0.0
@@ -578,6 +699,7 @@ class Adept_Drivers_Tookan
         add_action( 'wp_ajax_ad_create_tookan_task', array($this, 'create_task'));
         add_action( 'wp_ajax_ad_get_agents', array($this, 'get_all_agents'));
         add_action ( 'wp_ajax_ad_assign_task_to_agent', array($this, 'assign_task_to_agent'));
+        add_action( 'wp_ajax_ad_autoassign_booking', array($this, 'autoassign_task'));
 	}
     
 }

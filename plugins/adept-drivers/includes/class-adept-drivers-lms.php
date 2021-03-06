@@ -76,6 +76,7 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
     public function __construct()
     {
         $this->token = get_option('ad_options')['ad_moodle_api_token'];
+        $this->integrated = empty($this->token) ? false : true;
         $this->company_id = get_option('ad_options')['ad_moodle_company_id'];
         $this->logger = new Adept_Drivers_Logger('LMS');
         $this->run_all();
@@ -174,33 +175,32 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
     public function process_user($user){
         $this->logger->Log_Information($user, "process_user");
         // First initiate user in lms
-       $initiate =  $this->initiate_user($user);
-       if($initiate){
-        $this->logger->Log_Information($initiate, "process_user-INIT");
-           $create = $this->create_user($initiate[0]['id']);
-           $this->logger->Log_Information($create, "process_user-CREATE");
-
-           if($create){
-               $enrol = $this->enrol_user($initiate[0]['id']);
-               $this->logger->Log_Information($enrol, "process_user-CREATE");
-
-                if($enrol) {
-                    //Send Email
-                    $message = "Welcome to Adept Drivers <br> These are your credentials for the website and the LMS <br> Username: $user[username], password: $user[password]";
-                    $email = wp_mail($user['email'], 'Successful Registration', $message);
-                    $user['isemailed'] = $email;
-                    $user['lmsid'] = $create['users'][0]['userid'];
-                    $this->logger->Log_Error($user, "email user");
-                    return $user;
+        if($this->integrated){
+            $initiate =  $this->initiate_user($user);
+            if($initiate){
+             $this->logger->Log_Information($initiate, "process_user-INIT");
+                $create = $this->create_user($initiate[0]['id']);
+                $this->logger->Log_Information($create, "process_user-CREATE");
+     
+                if($create){
+                    $enrol = $this->enrol_user($initiate[0]['id']);
+                    $this->logger->Log_Information($enrol, "process_user-CREATE");
+     
+                     if($enrol) {
+                         //Send Email
+                         $this->logger->Log_Error($user, "email user");
+                         return $initiate;
+                     }else{
+                         $this->logger->Log_Error($enrol, "process_user-Enrol");
+                     }
                 }else{
-                    $this->logger->Log_Error($enrol, "process_user-Enrol");
+                     $this->logger->Log_Error($create, "process_user-CREATE");
                 }
-           }else{
-                $this->logger->Log_Error($create, "process_user-CREATE");
-           }
-       }else{
-            $this->logger->Log_Error($initiate, "process_user-INIT");
-       }
+            }else{
+                 $this->logger->Log_Error($initiate, "process_user-INIT");
+            }
+        }
+       
        return false;
     }
 
@@ -228,17 +228,22 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
      * @return Array $student_progress
      */
     public function get_student_progress($id){
-        $progress_fn = 'gradereport_overview_get_course_grades';
-        $this->MoodleRest = new MoodleRest($this->domain . '/webservice/rest/server.php', $this->token);
-
-        $this->MoodleRest->request($progress_fn, array('userid' => $id), MoodleRest::METHOD_POST);
-        $result = $this->MoodleRest->getData();
-        if(isset($result['errorcode'])){
-            $this->logger->Log_Error($result, __FUNCTION__);
-            $result = false;
+        if($this->integrated){
+            $progress_fn = 'gradereport_overview_get_course_grades';
+            $this->MoodleRest = new MoodleRest($this->domain . '/webservice/rest/server.php', $this->token);
+    
+            $this->MoodleRest->request($progress_fn, array('userid' => $id), MoodleRest::METHOD_POST);
+            $result = $this->MoodleRest->getData();
+            if(isset($result['errorcode'])){
+                $this->logger->Log_Error($result, __FUNCTION__);
+                $result = false;
+            }else{
+                $this->logger->Log_Information($result, __FUNCTION__);
+            }
         }else{
-            $this->logger->Log_Information($result, __FUNCTION__);
+            $result = false;
         }
+        
 
         return $result;  
     }
@@ -252,16 +257,21 @@ require plugin_dir_path( __DIR__ ) . '/vendor/autoload.php';
      */
     public function update_user($user){
 
-        $update_user_fn = 'core_user_update_users';
-        $this->MoodleRest = new MoodleRest($this->domain . '/webservice/rest/server.php', $this->token);
-        $this->MoodleRest->request($update_user_fn, array('users' => array($user)), MoodleRest::METHOD_POST);
-        $result = $this->MoodleRest->getData();
-        if(isset($result['errorcode'])){
-            wp_mail( get_option( 'admin_email' ), 'LMS-FAILED REGISTRATION', 'Failed to update student ' . $user['firstname'] . ' ' . $user['lastname'] . ' With error message: ' . $result['debuginfo']);
-            $this->logger->Log_Error($result['debuginfo'], __FUNCTION__);
+        if($this->integrated){
+            $update_user_fn = 'core_user_update_users';
+            $this->MoodleRest = new MoodleRest($this->domain . '/webservice/rest/server.php', $this->token);
+            $this->MoodleRest->request($update_user_fn, array('users' => array($user)), MoodleRest::METHOD_POST);
+            $result = $this->MoodleRest->getData();
+            if(isset($result['errorcode'])){
+                wp_mail( get_option( 'admin_email' ), 'LMS-FAILED REGISTRATION', 'Failed to update student ' . $user['firstname'] . ' ' . $user['lastname'] . ' With error message: ' . $result['debuginfo']);
+                $this->logger->Log_Error($result['debuginfo'], __FUNCTION__);
+                $result = false;
+            }
+            $this->logger->Log_Information($result, __FUNCTION__);
+        }else{
             $result = false;
         }
-        $this->logger->Log_Information($result, __FUNCTION__);
+        
         return $result;
     }
 

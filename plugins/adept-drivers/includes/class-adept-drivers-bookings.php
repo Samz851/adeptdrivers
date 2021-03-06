@@ -83,6 +83,22 @@
     }
 
     /**
+     * Get Student Bookings
+     * 
+     * @param $id student id
+     * 
+     * @return Mix Bookings | false
+     */
+    public function get_student_bookings_count($id){
+        global $wpbd;
+		$sql = "SELECT COUNT(id) FROM $this->tablename WHERE student_id = $id";
+        $bookings = $this->db->get_var($sql);
+        $this->logger->Log_Information($bookings, __FUNCTION__);
+        return $bookings;  
+        
+    }
+
+    /**
      * Add Student Booking
      * 
      * @param Datetime $bookingDate
@@ -91,13 +107,20 @@
      * 
      * @return Bool
      */
-    public function add_student_bookings( $bookingDate, $id ){
+    public function add_student_bookings( $bookingDate, $id, $exam = false ){
         // $date = new DateTime($bookingDate);
         // $booking = $date->format('Y-m-d H:i:s');
+        $exam = $exam == 'true' ? true : false;
         $dates = explode(' to ', $bookingDate);
         $from_date = $dates[0];
         $to_date = $dates[1];
-        $agents = $this->get_student_agents($id);
+        if($exam){
+            $instructors = new Adept_Drivers_Instructors();
+            $agents = $instructors->get_all_instructors('freelance');
+            $this->logger->Log_Information(array($agents, gettype($exam)), 'add_student_bookings--Freelancer');
+        }else{
+            $agents = $this->get_student_agents($id);
+        }
         // $this->logger->Log_Information($agents, 'add_student_bookings');
         if(!$agents){
             $this->logger->Log_Error($agents, 'add_student_bookings--');
@@ -107,7 +130,7 @@
             $user = get_user_by('ID', $id);
             if($user){
                 $TOOKAN = new Adept_Drivers_Tookan();
-                $task = $TOOKAN->create_task($user, $from_date, $to_date, $agents);
+                $task = $TOOKAN->create_task($user, $from_date, $to_date, $agents, $exam);
                     $this->logger->Log_Information($task, 'add_student_bookings--task');
                     return $task;
             }
@@ -175,6 +198,7 @@
             'booking_end' => $to_booking_date,
             'instructor' => $bookingdata['agent_id'],
             'job_id' => $bookingdata['job_id'],
+            'tracking_url' => $bookingdata['tracking_url'],
             'status' => 1
         );
         // $this->logger->Log_Information(array('string' => $bookingdata, 'dates' => $dates), 'check data');
@@ -247,6 +271,14 @@
         }
         $tpl = $this->Mustache->loadTemplate('bookings-table');
 		echo $tpl->render(array('bookings' => $render_obj));
+    }
+
+    /**
+     * Check booking Status
+     * 
+     */
+    public function cron_check_booking_status(){
+        //TODO::
     }
 
  }

@@ -55,6 +55,59 @@
 			})
 		}
 
+		/**
+		 * Change agent for student show form
+		 */
+		function ChangeStudentAgent(e){
+			e.preventDefault();
+			var id = $(e.target).attr('data-id');
+			var agent = $(e.target).attr('data-agent');
+			var wrapper = $(e.target).parent();
+			var data = {
+				'action': 'ad_get_all_agents_name_id'
+			};
+			var agents = [];
+			$.post(ajaxurl, data, response => {
+				if(response.success){
+					var selEl = $('<select name="agents" id="agents_select"></select>')
+					console.log(response.data);
+					response.data.forEach(ag => {
+						if(ag.inst_name !== agent)
+							selEl.append(`<option value=${ag.instructor_id}>${ag.inst_name}</option>`);
+					});
+					wrapper.html(selEl);
+					var updateBtn = $(`<a href="#" data-id=${id}>Update</a>`);
+					updateBtn.on('click', updateStudentAgent)
+					wrapper.append(updateBtn);
+				}
+			})
+		}
+
+		/**
+		 * Update student Agent
+		 */
+		function updateStudentAgent(e){
+			e.preventDefault();
+			var id = $(e.target).attr('data-id');
+			var agentID = $('#agents_select').val();
+
+			var data = {
+				'action' : 'ad_update_student_agent',
+				'uid': id,
+				'agentID' : agentID
+			}
+
+			$.post(ajaxurl, data, response => {
+				if(response.success){
+					alert('Agent Updated, reloading...');
+					setTimeout(()=>{
+						location.reload();
+					}, 800)
+					
+				}
+			})
+		}
+
 		$('tbody#the-list a.delete-booking').on('click', delete_booking);
 		// var studentDetail;
 		if($('#datetimepicker1').length > 0){
@@ -118,7 +171,15 @@
 					var empty = $('#empty-bookings');
 					for(var key in response.data.data){
 						if( key in fields){
-							template.append(`<div> <span class="label">${fields[key]}:</span> ${response.data.data[key]}`);
+							if(key == 'agent_name'){
+								var el = $(`<div> <span class="label">${fields[key]}:</span> <span id="agent_data">${response.data.data[key]}</span> `);
+								var changeBtn = $(`<a href="" data-agent="${response.data.data[key]}" data-id=${window.studentDetail.ID}>Change</a>`);
+								changeBtn.on('click', ChangeStudentAgent);
+								el.find('#agent_data').append(changeBtn);
+								template.append(el);
+							}else{
+								template.append(`<div> <span class="label">${fields[key]}:</span> ${response.data.data[key]}`);
+							}
 						}
 					};
 					if(response.data.bookings){
@@ -244,7 +305,7 @@
 						alert('User Deleted, Reloading in 5s...');
 						setTimeout(() => {
 							location.reload();
-						}, 4000);
+						}, 2000);
 					}else{
 						alert('Failed to delete user...')
 					}
@@ -261,7 +322,8 @@
 			}
 
 			$.post(ajaxurl, data, response => {
-				if(response){
+				if(response.success){
+					location.reload();
 					$('.ad-get-agents').append(`<pre>${JSON.stringify(JSON.parse(response.message), null, 2)}</pre>`)
 					console.log(JSON.parse(response.message));
 				}

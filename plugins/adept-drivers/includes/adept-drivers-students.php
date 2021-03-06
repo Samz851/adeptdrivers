@@ -256,9 +256,10 @@ require plugin_dir_path( __DIR__ ) . 'vendor/autoload.php';
       public function add_student_booking(){
           $student_id = $_REQUEST['student_id'];
           $bookingDate = $_REQUEST['booking_date'];
+          $exam = $_REQUEST['exam_booking'];
 
           $booking_ins = new Adept_Drivers_Public_Booking();
-          $booking_conf = $booking_ins->add_student_bookings( $bookingDate, $student_id );
+          $booking_conf = $booking_ins->add_student_bookings( $bookingDate, $student_id, $exam );
             $student_bookings_count = get_user_meta( $student_id, 'student_car_sessions_count', true );
             if($student_bookings_count > 0){
                 if($booking_conf['success'] == true){
@@ -268,10 +269,12 @@ require plugin_dir_path( __DIR__ ) . 'vendor/autoload.php';
                         'tookan_id' => get_user_meta( $student_id, 'ad_student_tookan_id', true ),
                         'booking_date' => $bookingDate,
                         'agent_id' => $booking_conf['agent_id'],
-                        'job_id' => $booking_conf['job_id']
+                        'job_id' => $booking_conf['job_id'],
+                        'tracking_url' => $booking_conf['tracking_url']
                     );
                     $insert = $booking_ins->save_student_booking($bookingdata, $student_id);
                     if($insert){
+                        update_user_meta( $student_id, 'student_car_sessions_count', --$student_bookings_count );
                       wp_send_json(array(
                           "success" => true,
                           "message" => "Booking Confirmed and Saved!",
@@ -312,10 +315,11 @@ require plugin_dir_path( __DIR__ ) . 'vendor/autoload.php';
           $delete = $booking_ins->delete_booking($booking_id, $student_id);
           if($delete){
               $user_bookings = get_user_meta( $student_id, 'student_car_sessions_count', true );
-              $update = update_user_meta( $student_id, 'student_car_sessions_count', $user_bookings - 1 );
+              $update = update_user_meta( $student_id, 'student_car_sessions_count', ++$user_bookings );
             wp_send_json(array(
                 "success" => true,
                 "message" => "Booking deleted!",
+                'update' => $update
             ));
           }else{
             wp_send_json(array(
@@ -344,6 +348,7 @@ require plugin_dir_path( __DIR__ ) . 'vendor/autoload.php';
                     $student_metas[$key] = $value;
                 }
             }
+            $this->logger->Log_Information($student_metas, __FUNCTION__);
             $update = wp_update_user($student_core);
             if(is_wp_error($update)){
                 return false;
@@ -449,22 +454,17 @@ require plugin_dir_path( __DIR__ ) . 'vendor/autoload.php';
                     'email' => $student_core['user_email'], 
                     'address' => $add_string, 
                     'latitude' => $coordinates[0], 
-                    'longitude' => $coordinates[1]));
-
+                    'longitude' => $coordinates[1])
+                );
+                $agentID = array();
                 if($customer['data']['customer_id']){
                     add_user_meta( $update, 'ad_student_tookan_id', $customer['data']['customer_id'], true);
-                    $agentID = array();
                     // Get agents near this customer
-                    $agent = $TOKAAN->get_agents_near_customer( $customer['data']['customer_id'] );
-                    if($agent) {
-                        array_push($agentID, $agent[0]['fleet_id']);
-                    }else{
                         //Search locally
                         $instructor_ins = new Adept_Drivers_Instructors();
                         $agent_id = $instructor_ins->get_nearest_instructor(array('lat' => $coordinates[0], 'long' => $coordinates[1]));
                         $this->logger->Log_Information($agent_id, 'Locally Get Close Agent');
                         if($agent_id) array_push($agentID, $agent_id);
-                    }
                     add_user_meta( $update, 'ad_student_instructor', $agentID, true);
                 }
                 /**
@@ -484,8 +484,16 @@ require plugin_dir_path( __DIR__ ) . 'vendor/autoload.php';
                      */
                     $LMS = new Adept_Drivers_LMS();
                     $proccessed = $LMS->process_user($user);
+                    $this->logger->Log_Information($proccessed, '--LMS PROCESSED');
                     if($proccessed){
-                        add_user_meta($update, 'lmsid', $proccessed['lmsid'], true);
+                        $instructor_ins = new Adept_Drivers_Instructors();
+                        $instructor_data = $instructor_ins->get_agent_details($agentID[0]);
+                        $this->logger->Log_Information(array('agent'=>$agentID, 'instructor' => $instructor_data), '--Emailing User');
+                        add_user_meta($update, 'lmsid', $proccessed[0]['id'], true);
+                        $message = Adept_Drivers_Emails::successful_registration_with_agent(array('username' => $user['username'], 'password' => $user['password'], 'instructor' => $instructor_data['inst_name']));
+                        $email = wp_mail($user['email'], 'Successful Registration', $message, array('Content-Type: text/html; charset=UTF-8'));
+                        $user['isemailed'] = $email;
+                        $user['lmsid'] = $create['users'][0]['userid'];
                     }
                 }
                 return true;
@@ -519,13 +527,14 @@ require plugin_dir_path( __DIR__ ) . 'vendor/autoload.php';
         $product_id = maybe_unserialize($student_metas['student_products']);
         $car_sessions_total = get_post_meta($product_id[0], 'in_car_sessions', true);
         $bookings = new Adept_Drivers_Public_Booking();
-        $total_bookings = count($bookings->get_student_bookings($id));
+        $total_bookings = $bookings->get_student_bookings_count($id);
 
         $student_data = $student_metas;
         $student_data['has_LMS'] = get_post_meta($product_id[0], 'includes_bde', true);
         $student_data['student_progress'] = $student_grades['grades'][0]['grade'];
         $student_data['lessons_total'] = $car_sessions_total;
         $student_data['total_bookings'] = $total_bookings;
+        // $student_data['student_car_sessions_count'] = get_user_meta( $student_id, 'student_car_sessions_count', true );
         $student_data['product_name'] = get_page_by_title( $product_id, OBJECT, 'product' );
         $this->logger->Log_Information($student_data, __FUNCTION__);
         return $student_data;
@@ -554,6 +563,22 @@ require plugin_dir_path( __DIR__ ) . 'vendor/autoload.php';
                 "dates" => $result
             ));
         }else{
+            //Email admin that agent is deleted
+            $user_info = get_userdata($student_ID);
+            $Instructors = new Adept_Drivers_Instructors();
+            $agent_info = $Instructors->get_agent_details($agent);
+            $email_data = array(
+                'student_name' => $user_info->display_name,
+                'student_id' => $student_ID,
+                'agent_name' => $agent_info['inst_name'],
+                'agent_id' => $agent
+            );
+            $message = Adept_Drivers_Emails::student_agent_deleted($email_data);
+            wp_mail(get_bloginfo('admin_email'), 'Missing Agent', $message, array('Content-Type: text/html; charset=UTF-8'));
+
+            // Mark Agent As missing
+            update_user_meta( $student_ID, 'ad_student_instructor', array() );
+            
             wp_send_json(array(
                 "success" => false
             ));

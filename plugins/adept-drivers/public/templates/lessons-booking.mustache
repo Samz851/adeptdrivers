@@ -4,23 +4,17 @@
     <div class="booking-confirmation"></div>
     <div class="ad-booking-wrapper">
         <div class="ad-booking-calendar">
-            <div class="add-booking row">
-                <div class="ad-booking-btn col-md-2">
-                    <a href="#" id="show-booking">
-                        <i class="fa fa-plus"></i>
-                    </a>
-                </div>
-                
-            </div>
             <div class="inst-availability">
-                <div class="add-bookingdate row">
+                <div class="add-bookingdate show row">
                     <div class="col-md-10" id="date-picker">
                         <p>Pick 7 days range to see your instructor's availability</p>
                         <input name="dateranger" />
+                        {{#hasExam}}
                         <div class="exam-input-container">
                             <input type="checkbox" name="exam-booking" id="exam-booking" />
                             <span> Exam Session Booking?</span>
                         </div>
+                        {{/hasExam}}
                     </div>
                     <div class="col-md-2">
                         <button id="submit-student-booking">Submit</button>
@@ -50,7 +44,7 @@
                         {{#.}}
                             <tr>
                                 <td>{{ booking_date }} to {{ booking_end }}</td>
-                                <td> {{ status }} | 
+                                <td> {{ status }} | <a href={{tracking_url}}>View</a> | 
                                 {{#cancel}}<a href="#" data-ad-booking={{job_id}}>Cancel</a></td>{{/cancel}}
                             </tr>
                         {{/.}}
